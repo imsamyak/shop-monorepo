@@ -1,0 +1,18 @@
+# Production: every connection detail and secret must come from the environment (no defaults).
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+identity:
+  jwt:
+    private-key: ${IDENTITY_JWT_PRIVATE_KEY}
+  password-reset:
+    link-base-url: ${IDENTITY_PASSWORD_RESET_LINK_BASE_URL}
+    log-links: false
+  service-clients:
+    checkout-service: ${CHECKOUT_CLIENT_SECRET}

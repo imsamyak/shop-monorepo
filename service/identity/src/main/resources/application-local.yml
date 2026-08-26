@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/identity_db}
+    username: ${SPRING_DATASOURCE_USERNAME:ecom}
+    password: ${SPRING_DATASOURCE_PASSWORD:ecom}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+identity:
+  jwt:
+    # No key is committed: one is generated on first start and kept outside the repository.
+    dev-key-file: ${IDENTITY_DEV_KEY_FILE:${user.home}/.ecom-dev/identity-jwt-private.pem}
+  password-reset:
+    # No mail sender is wired yet, so the link is logged to let a reset be tried by hand. Never enable this elsewhere.
+    log-links: true
+  service-clients:
+    checkout-service: ${CHECKOUT_CLIENT_SECRET:dev-checkout-client-secret}

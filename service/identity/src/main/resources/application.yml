@@ -1,0 +1,25 @@
+server:
+  port: ${PORT:8086}
+
+spring:
+  application:
+    name: identity
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    show-sql: false
+
+identity:
+  jwt:
+    issuer: ecom-identity
+    access-ttl-seconds: 3600
+    service-ttl-seconds: 300
+  lockout:
+    max-attempts: 5
+    lock-seconds: 900
+  password-reset:
+    ttl-seconds: 1800
+
+# Identity verifies its own tokens with its own key (see IdentityConfig), so ecom.security.jwt is not set here.
+# Other services set ecom.security.jwt.issuer and either public-key or jwks-uri (this service's /.well-known/jwks.json).
