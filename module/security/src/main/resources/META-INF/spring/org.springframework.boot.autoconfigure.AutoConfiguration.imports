@@ -1,0 +1,2 @@
+com.ecom.security.jwt.JwtAuthAutoConfiguration
+com.ecom.security.SecurityAutoConfiguration
