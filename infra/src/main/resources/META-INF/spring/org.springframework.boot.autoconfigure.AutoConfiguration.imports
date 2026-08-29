@@ -1,0 +1,4 @@
+com.ecom.infra.client.kafka.KafkaClientConfiguration
+com.ecom.infra.client.dynamodb.DynamoDbClientConfiguration
+com.ecom.infra.adapter.outbox.KafkaOutboxAdapterConfiguration
+com.ecom.infra.adapter.inbox.KafkaInboxAdapterConfiguration

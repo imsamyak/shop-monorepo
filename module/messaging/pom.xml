@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ecom</groupId>
+        <artifactId>backend</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>messaging</artifactId>
+    <name>module/messaging</name>
+    <description>E-commerce Messaging Modules</description>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>contract</module>
+        <module>outbox</module>
+        <module>inbox</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.ecom</groupId>
+            <artifactId>shared</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

@@ -1,0 +1,18 @@
+# Where the clients live when the "local" profile is active: Docker containers on this machine.
+# Only "where": which client a module uses is the service's decision (ecom.outbox.client: kafka.core).
+# Every name defined here must also exist in the other profiles' files.
+# Loaded at the lowest priority, so the service's own configuration overrides anything here.
+# Only non-secret values belong in these files. Real AWS access uses the IAM role / default credential chain.
+ecom:
+  client:
+    kafka:
+      core:
+        bootstrap-servers: localhost:9092
+
+    dynamodb:
+      main:
+        region: ap-south-1
+        endpoint: http://localhost:8000
+        # DynamoDB Local requires some key but does not check it
+        access-key-id: local
+        secret-access-key: local
