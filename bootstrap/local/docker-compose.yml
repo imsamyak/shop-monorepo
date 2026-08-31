@@ -43,7 +43,7 @@ services:
       - dynamodb-data:/home/dynamodblocal/data
 
   # The services' databases (spring.datasource.* in each service's application-local.yml): localhost:5432, user and
-  # password "ecom". POSTGRES_DB creates identity_db on first start; more databases are added here as services arrive.
+  # password "ecom". POSTGRES_DB creates identity_db on first start; the other databases come from postgres-init/.
   postgres:
     image: postgres:${POSTGRES_TAG}
     ports:
@@ -54,6 +54,7 @@ services:
       POSTGRES_DB: identity_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ecom -d identity_db"]
       interval: 5s

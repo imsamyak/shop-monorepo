@@ -18,6 +18,7 @@
 
     <modules>
         <module>identity</module>
+        <module>listing</module>
     </modules>
 
 </project>
