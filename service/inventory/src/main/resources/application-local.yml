@@ -1,0 +1,17 @@
+# Runs against the containers from bootstrap/local (bootstrap/local/local.ps1 up).
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/inventory_db}
+    username: ${SPRING_DATASOURCE_USERNAME:ecom}
+    password: ${SPRING_DATASOURCE_PASSWORD:ecom}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+ecom:
+  # Both the events this service publishes and the SKU events it listens to go through the Kafka client the
+  # profile calls "core"; infra says where it is.
+  outbox:
+    client: kafka.core
+  inbox:
+    client: kafka.core

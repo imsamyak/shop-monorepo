@@ -19,6 +19,7 @@
     <modules>
         <module>identity</module>
         <module>listing</module>
+        <module>inventory</module>
     </modules>
 
 </project>

@@ -1,0 +1,280 @@
+package com.ecom.inventory;
+
+import com.ecom.inbox.InboxListener;
+import com.ecom.inventory.port.in.usecase.reservation.ExpireReservationsUseCase;
+import com.ecom.inventory.port.in.usecase.reservation.dto.command.ExpireReservationsCmd;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * End-to-end tests of inventory against a real (H2) database: SKU events create stock, reservations are atomic and
+ * idempotent, and expiry returns stock.
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+class InventoryIntegrationTest {
+
+   private static final ObjectMapper JSON = new ObjectMapper();
+   private static final AtomicLong SKU_IDS = new AtomicLong(1_000);
+
+   @Value("${local.server.port}")
+   int port;
+
+   @Autowired
+   JdbcTemplate jdbc;
+
+   @Autowired
+   InboxListener inboxListener;
+
+   @Autowired
+   ExpireReservationsUseCase expireReservations;
+
+   private final HttpClient http = HttpClient.newHttpClient();
+
+   record Reply(int status, JsonNode body) {
+      String text(String field) {
+         return body.path(field).asText();
+      }
+   }
+
+   private Reply call(String method, String path, String body) throws Exception {
+      HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+         .header("Content-Type", "application/json");
+      request.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
+      HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
+      JsonNode json = response.body() == null || response.body().isBlank() ? JSON.createObjectNode() : JSON.readTree(response.body());
+      return new Reply(response.statusCode(), json);
+   }
+
+   /**
+    * Creates a SKU through the same inbox path production uses (Sku.Created event).
+    */
+   private long newSku(UUID sellerId) {
+      long skuId = SKU_IDS.incrementAndGet();
+      String payload = "{\"skuId\":\"" + skuId + "\",\"productId\":\"" + UUID.randomUUID()
+         + "\",\"sellerId\":\"" + sellerId + "\",\"price\":10.00}";
+      inboxListener.listen("msg-" + UUID.randomUUID(), "sku.created", payload);
+      return skuId;
+   }
+
+   private long newSkuWithStock(UUID sellerId, int quantity) throws Exception {
+      long skuId = newSku(sellerId);
+      Reply added = call("POST", "/inventory/" + skuId + "/stock/add", "{\"quantity\":" + quantity + "}");
+      assertThat(added.status()).isEqualTo(200);
+      return skuId;
+   }
+
+   private String reserveBody(String reference, long ttl, long... skuAndQty) {
+      StringBuilder items = new StringBuilder();
+      for (int i = 0; i < skuAndQty.length; i += 2) {
+         if (i > 0) items.append(',');
+         items.append("{\"skuId\":").append(skuAndQty[i]).append(",\"quantity\":").append(skuAndQty[i + 1]).append('}');
+      }
+      return "{\"referenceId\":\"" + reference + "\",\"ttlSeconds\":" + ttl + ",\"items\":[" + items + "]}";
+   }
+
+   private int reserved(long skuId) {
+      return jdbc.queryForObject("select reserved_quantity from inventory_items where sku_id = ?", Integer.class, skuId);
+   }
+
+   private int total(long skuId) {
+      return jdbc.queryForObject("select total_quantity from inventory_items where sku_id = ?", Integer.class, skuId);
+   }
+
+   // ------------------------------------------------------------------ stock
+
+   @Test
+   void skuCreatedEventCreatesAnEmptyItemOwnedByTheSellerAndIsIdempotent() {
+      UUID sellerId = UUID.randomUUID();
+      long skuId = newSku(sellerId);
+
+      assertThat(total(skuId)).isZero();
+      assertThat(jdbc.queryForObject("select seller_id from inventory_items where sku_id = ?", UUID.class, skuId)).isEqualTo(sellerId);
+
+      // the same SKU announced again (different message id) must not create a duplicate
+      inboxListener.listen("msg-again", "sku.created",
+         "{\"skuId\":\"" + skuId + "\",\"productId\":\"" + UUID.randomUUID() + "\",\"sellerId\":\"" + sellerId + "\",\"price\":1}");
+      assertThat(jdbc.queryForObject("select count(*) from inventory_items where sku_id = ?", Integer.class, skuId)).isEqualTo(1);
+   }
+
+   @Test
+   void duplicateInboxMessagesAreProcessedOnce() {
+      UUID sellerId = UUID.randomUUID();
+      long skuId = SKU_IDS.incrementAndGet();
+      String payload = "{\"skuId\":\"" + skuId + "\",\"productId\":\"" + UUID.randomUUID() + "\",\"sellerId\":\"" + sellerId + "\",\"price\":1}";
+
+      inboxListener.listen("same-message", "sku.created", payload);
+      inboxListener.listen("same-message", "sku.created", payload);
+
+      assertThat(jdbc.queryForObject("select count(*) from inbox where message_id = 'same-message'", Integer.class)).isEqualTo(1);
+   }
+
+   @Test
+   void stockCanOnlyBeAddedToExistingSkusAndWithinLimits() throws Exception {
+      long skuId = newSku(UUID.randomUUID());
+
+      assertThat(call("POST", "/inventory/" + skuId + "/stock/add", "{\"quantity\":5}").status()).isEqualTo(200);
+      assertThat(call("POST", "/inventory/9999999/stock/add", "{\"quantity\":5}").status()).isEqualTo(404);
+      assertThat(call("POST", "/inventory/" + skuId + "/stock/add", "{\"quantity\":2000000}").status()).isEqualTo(400);
+      assertThat(call("POST", "/inventory/" + skuId + "/stock/remove", "{\"quantity\":2}").status()).isEqualTo(200);
+      assertThat(total(skuId)).isEqualTo(3);
+   }
+
+   @Test
+   void stockChangesAreAnnouncedThroughTheOutbox() throws Exception {
+      long skuId = newSku(UUID.randomUUID());
+
+      call("POST", "/inventory/" + skuId + "/stock/add", "{\"quantity\":5}");
+
+      assertThat(jdbc.queryForObject(
+         "select count(*) from outbox_events where aggregate_type = 'inventory' and aggregate_id = ?",
+         Integer.class, String.valueOf(skuId))).isEqualTo(1);
+   }
+
+   // ----------------------------------------------------------- reservations
+
+   @Test
+   void reservingManyItemsIsAllOrNothing() throws Exception {
+      UUID sellerId = UUID.randomUUID();
+      long plenty = newSkuWithStock(sellerId, 10);
+      long scarce = newSkuWithStock(sellerId, 1);
+
+      Reply failed = call("POST", "/inventory/reservations", reserveBody("chk-fail", 60, plenty, 3, scarce, 5));
+
+      assertThat(failed.status()).isIn(409, 422);
+      assertThat(reserved(plenty)).as("the first line was rolled back").isZero();
+      assertThat(reserved(scarce)).isZero();
+      assertThat(jdbc.queryForObject("select count(*) from inventory_reservations where reference_id = 'chk-fail'", Integer.class)).isZero();
+   }
+
+   @Test
+   void reservingIsIdempotentForTheSameReference() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+      String reference = "chk-" + UUID.randomUUID();
+
+      Reply first = call("POST", "/inventory/reservations", reserveBody(reference, 60, sku, 4));
+      Reply second = call("POST", "/inventory/reservations", reserveBody(reference, 60, sku, 4));
+
+      assertThat(first.status()).isEqualTo(201);
+      assertThat(second.status()).isEqualTo(201);
+      assertThat(second.body().path("reservations").get(0).path("reservationId").asText())
+         .isEqualTo(first.body().path("reservations").get(0).path("reservationId").asText());
+      assertThat(reserved(sku)).as("reserved once, not twice").isEqualTo(4);
+      assertThat(jdbc.queryForObject("select count(*) from outbox_events where payload like ?", Integer.class,
+         "%" + reference + "%")).as("replays emit no events").isEqualTo(1);
+   }
+
+   @Test
+   void reservationInputsAreBounded() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+
+      assertThat(call("POST", "/inventory/reservations", reserveBody("r1", Long.MAX_VALUE, sku, 1)).status()).isEqualTo(400);
+      assertThat(call("POST", "/inventory/reservations", reserveBody("r2", 0, sku, 1)).status()).isEqualTo(400);
+      assertThat(call("POST", "/inventory/reservations", reserveBody("r3", 60, sku, 100_000)).status()).isEqualTo(400);
+      assertThat(call("POST", "/inventory/reservations", reserveBody("r4", 60)).status()).isEqualTo(400);
+   }
+
+   @Test
+   void commitConsumesStockAndIsIdempotent() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+      Reply reserved = call("POST", "/inventory/reservations", reserveBody("chk-" + UUID.randomUUID(), 60, sku, 4));
+      String id = reserved.body().path("reservations").get(0).path("reservationId").asText();
+      String body = "{\"reservationIds\":[\"" + id + "\"]}";
+
+      assertThat(call("POST", "/inventory/reservations/commit", body).status()).isEqualTo(200);
+      assertThat(call("POST", "/inventory/reservations/commit", body).status()).as("retry is safe").isEqualTo(200);
+
+      assertThat(total(sku)).isEqualTo(6);
+      assertThat(reserved(sku)).isZero();
+      assertThat(call("POST", "/inventory/reservations/release", body).status())
+         .as("a committed reservation cannot be released").isIn(409, 422);
+   }
+
+   @Test
+   void releaseReturnsStockAndIsIdempotent() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+      Reply reserved = call("POST", "/inventory/reservations", reserveBody("chk-" + UUID.randomUUID(), 60, sku, 4));
+      String body = "{\"reservationIds\":[\"" + reserved.body().path("reservations").get(0).path("reservationId").asText() + "\"]}";
+
+      assertThat(call("POST", "/inventory/reservations/release", body).status()).isEqualTo(200);
+      assertThat(call("POST", "/inventory/reservations/release", body).status()).isEqualTo(200);
+
+      assertThat(reserved(sku)).isZero();
+      assertThat(total(sku)).isEqualTo(10);
+   }
+
+   @Test
+   void aBatchCommitFailsAsAWholeWhenOneReservationIsUnknown() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+      Reply reserved = call("POST", "/inventory/reservations", reserveBody("chk-" + UUID.randomUUID(), 60, sku, 4));
+      String id = reserved.body().path("reservations").get(0).path("reservationId").asText();
+
+      Reply commit = call("POST", "/inventory/reservations/commit",
+         "{\"reservationIds\":[\"" + id + "\",\"" + UUID.randomUUID() + "\"]}");
+
+      assertThat(commit.status()).isEqualTo(404);
+      assertThat(reserved(sku)).as("nothing was committed").isEqualTo(4);
+      assertThat(total(sku)).isEqualTo(10);
+   }
+
+   @Test
+   void overdueReservationsAreExpiredAndTheirStockReturned() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+      Reply reserved = call("POST", "/inventory/reservations", reserveBody("chk-" + UUID.randomUUID(), 1, sku, 4));
+      String id = reserved.body().path("reservations").get(0).path("reservationId").asText();
+      assertThat(reserved(sku)).isEqualTo(4);
+
+      var result = expireReservations.execute(new ExpireReservationsCmd(Instant.now().plusSeconds(120), null));
+
+      assertThat(result.expiredReservationIds()).contains(UUID.fromString(id));
+      assertThat(reserved(sku)).isZero();
+      assertThat(call("POST", "/inventory/reservations/commit", "{\"reservationIds\":[\"" + id + "\"]}").status())
+         .as("an expired reservation can no longer be committed").isIn(409, 410, 422);
+   }
+
+   @Test
+   void anExpiredButNotYetSweptReservationCannotBeCommittedAndChangesNothing() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+      Reply reserved = call("POST", "/inventory/reservations", reserveBody("chk-" + UUID.randomUUID(), 1, sku, 4));
+      String id = reserved.body().path("reservations").get(0).path("reservationId").asText();
+      jdbc.update("update inventory_reservations set expires_at = ? where id = ?",
+         java.sql.Timestamp.from(Instant.now().minusSeconds(60)), UUID.fromString(id));
+
+      Reply commit = call("POST", "/inventory/reservations/commit", "{\"reservationIds\":[\"" + id + "\"]}");
+
+      assertThat(commit.status()).isIn(409, 410, 422);
+      assertThat(total(sku)).isEqualTo(10);
+      assertThat(reserved(sku)).isEqualTo(4);
+   }
+
+   @Test
+   void deletingASkuReleasesItsPendingReservationsAndRemovesTheItem() throws Exception {
+      UUID sellerId = UUID.randomUUID();
+      long sku = newSkuWithStock(sellerId, 10);
+      Reply reserved = call("POST", "/inventory/reservations", reserveBody("chk-" + UUID.randomUUID(), 600, sku, 4));
+      String id = reserved.body().path("reservations").get(0).path("reservationId").asText();
+
+      inboxListener.listen("del-" + UUID.randomUUID(), "sku.deleted",
+         "{\"skuId\":\"" + sku + "\",\"productId\":\"" + UUID.randomUUID() + "\"}");
+
+      assertThat(jdbc.queryForObject("select count(*) from inventory_items where sku_id = ?", Integer.class, sku)).isZero();
+      assertThat(jdbc.queryForObject("select status from inventory_reservations where id = ?", String.class, UUID.fromString(id)))
+         .isEqualTo("RELEASED");
+   }
+}

@@ -1,0 +1,23 @@
+server:
+  port: ${PORT:8083}
+
+spring:
+  application:
+    name: inventory
+  profiles:
+    # The profile also selects which ecom-infra-<profile>.yml says where Kafka and the other clients are.
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  jpa:
+    open-in-view: false
+    show-sql: false
+
+outbox:
+  poll-interval-ms: 1000
+  relay:
+    batch-size: 50
+    lease-seconds: 30
+
+inventory:
+  reservation:
+    expiry-enabled: true
+    expiry-interval-ms: 30000

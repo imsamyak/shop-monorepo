@@ -1,0 +1,16 @@
+# Production: every connection detail and secret must come from the environment (no defaults).
+# Where Kafka is comes from ecom-infra-prod.yml or from ECOM_CLIENT_KAFKA_CORE_BOOTSTRAP_SERVERS.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+ecom:
+  outbox:
+    client: kafka.core
+  inbox:
+    client: kafka.core
