@@ -3,3 +3,4 @@
 --   docker exec ecom-local-postgres-1 createdb -U ecom <name>
 CREATE DATABASE listing_db;
 CREATE DATABASE inventory_db;
+CREATE DATABASE checkout_db;

@@ -1,0 +1,20 @@
+# Runs against the containers from bootstrap/local (bootstrap/local/local.ps1 up) and the other services on this machine.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/checkout_db}
+    username: ${SPRING_DATASOURCE_USERNAME:ecom}
+    password: ${SPRING_DATASOURCE_PASSWORD:ecom}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+services:
+  inventory:
+    base-url: ${INVENTORY_SERVICE_URL:http://localhost:8083}
+  product-query:
+    base-url: ${PRODUCT_QUERY_SERVICE_URL:http://localhost:8082}
+
+ecom:
+  outbox:
+    # Publish the checkout events through the Kafka client the profile calls "core"; infra says where it is.
+    client: kafka.core
