@@ -1,7 +1,6 @@
 package com.ecom.infra.adapter.inbox;
 
 import com.ecom.inbox.InboxListener;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
@@ -98,19 +97,7 @@ public class KafkaInboxConsumer implements SmartLifecycle {
    }
 
    void onMessage(ConsumerRecord<String, String> record) {
-      JsonNode envelope;
-      try {
-         envelope = objectMapper.readTree(record.value());
-      } catch (Exception e) {
-         throw new IllegalArgumentException("Unreadable message at " + location(record), e);
-      }
-      String aggregate = envelope.path("aggregate").asText("");
-      String action = envelope.path("action").asText("");
-      JsonNode data = envelope.get("data");
-      if (aggregate.isBlank() || action.isBlank() || data == null || data.isNull()) {
-         throw new IllegalArgumentException("Malformed envelope at " + location(record));
-      }
-      listener.listen(messageId(record), aggregate + "." + action, data.toString());
+      InboxEnvelopes.dispatch(listener, objectMapper, messageId(record), record.value(), location(record));
    }
 
    private static String messageId(ConsumerRecord<String, String> record) {

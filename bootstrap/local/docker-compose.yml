@@ -4,9 +4,27 @@
 name: ecom-local
 
 services:
+  # ecom.client.rabbit.core -> localhost:5672 (login guest/guest, which RabbitMQ only accepts from this machine).
+  # The management UI is on http://localhost:15672. Exchanges and queues are declared by the services.
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_TAG}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 20s
+
   # ecom.client.kafka.core -> localhost:9092. Single node in KRaft mode (no ZooKeeper). Topics are created on first use.
+  # Not started by default, since the services publish through RabbitMQ: add --profile kafka to start it.
   kafka:
     image: apache/kafka:${KAFKA_TAG}
+    profiles: ["kafka"]
     ports:
       - "9092:9092"
     environment:
@@ -78,6 +96,7 @@ services:
 
 volumes:
   postgres-data:
+  rabbitmq-data:
   kafka-data:
   dynamodb-data:
   mongo-data:

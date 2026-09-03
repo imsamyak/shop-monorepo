@@ -1,5 +1,5 @@
 # Production: every connection detail and secret must come from the environment (no defaults).
-# Where Kafka is comes from ecom-infra-prod.yml or from ECOM_CLIENT_KAFKA_CORE_BOOTSTRAP_SERVERS.
+# Where RabbitMQ is comes from ecom-infra-prod.yml or from ECOM_CLIENT_RABBIT_CORE_HOST.
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -11,4 +11,4 @@ spring:
 
 ecom:
   outbox:
-    client: kafka.core
+    client: rabbit.core

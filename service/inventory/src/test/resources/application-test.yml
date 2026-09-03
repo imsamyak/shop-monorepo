@@ -7,7 +7,7 @@ spring:
     hibernate:
       ddl-auto: update
 
-# No ecom.outbox.client / ecom.inbox.client here: nothing is published and nothing is consumed from Kafka, so the tests
+# No ecom.outbox.client / ecom.inbox.client here: nothing is published and nothing is consumed from RabbitMQ, so the tests
 # feed events to the inbox directly and read the outbox table.
 outbox:
   relay:

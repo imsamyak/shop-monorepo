@@ -5,7 +5,7 @@ spring:
   application:
     name: inventory
   profiles:
-    # The profile also selects which ecom-infra-<profile>.yml says where Kafka and the other clients are.
+    # The profile also selects which ecom-infra-<profile>.yml says where RabbitMQ and the other clients are.
     active: ${SPRING_PROFILES_ACTIVE:local}
   jpa:
     open-in-view: false

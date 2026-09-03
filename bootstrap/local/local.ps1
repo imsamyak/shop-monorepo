@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Starts, stops or resets the local resources (Postgres, Kafka, DynamoDB Local, MongoDB) that a service needs under the "local" profile.
+  Starts, stops or resets the local resources (Postgres, RabbitMQ, DynamoDB Local, MongoDB) that a service needs under the "local" profile.
 .EXAMPLE
   ./local.ps1 up       # start everything and wait until every port answers
   ./local.ps1 down     # stop, keep the data
@@ -17,7 +17,7 @@ $ErrorActionPreference = 'Stop'
 $composeFile = Join-Path $PSScriptRoot 'docker-compose.yml'
 
 # name -> port: the contract with infra/src/main/resources/ecom-infra-local.yml
-$endpoints = [ordered]@{ postgres = 5432; kafka = 9092; dynamodb = 8000; mongo = 27017 }
+$endpoints = [ordered]@{ postgres = 5432; rabbitmq = 5672; dynamodb = 8000; mongo = 27017 }
 
 # Windows PowerShell 5.1 turns anything a native command writes to stderr (Docker's progress output included)
 # into an error, so errors are only taken from the exit code.

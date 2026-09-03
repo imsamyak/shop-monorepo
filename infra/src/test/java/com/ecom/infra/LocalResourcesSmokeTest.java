@@ -2,10 +2,13 @@ package com.ecom.infra;
 
 import com.ecom.inbox.InboxListener;
 import com.ecom.infra.adapter.inbox.KafkaInboxAdapterConfiguration;
+import com.ecom.infra.adapter.inbox.RabbitInboxAdapterConfiguration;
 import com.ecom.infra.adapter.outbox.KafkaOutboxAdapterConfiguration;
+import com.ecom.infra.adapter.outbox.RabbitOutboxAdapterConfiguration;
 import com.ecom.infra.client.dynamodb.DynamoDbClientConfiguration;
 import com.ecom.infra.client.dynamodb.DynamoDbClients;
 import com.ecom.infra.client.kafka.KafkaClientConfiguration;
+import com.ecom.infra.client.rabbit.RabbitClientConfiguration;
 import com.ecom.outbox.OutboxMessage;
 import com.ecom.outbox.OutboxPublisher;
 import org.junit.jupiter.api.Assumptions;
@@ -37,9 +40,9 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Runs the real configuration against the containers from {@code bootstrap/local} (Kafka on 9092, DynamoDB Local on
- * 8000) with nothing but the {@code local} profile. Skipped when they are not running, so the normal build never
- * needs Docker. Start them with {@code bootstrap/local/local.ps1 up}.
+ * Runs the real configuration against the containers from {@code bootstrap/local} (RabbitMQ on 5672, DynamoDB Local
+ * on 8000, and Kafka on 9092 when started with its compose profile) with nothing but the {@code local} profile. Each
+ * test is skipped when its container is not running, so the normal build never needs Docker. Start them with {@code bootstrap/local/local.ps1 up}.
  */
 class LocalResourcesSmokeTest {
 
@@ -52,9 +55,9 @@ class LocalResourcesSmokeTest {
       }
    }
 
-   private static void requireLocalResources() {
-      Assumptions.assumeTrue(answers(9092) && answers(8000),
-          "Local resources are not running; start them with bootstrap/local/local.ps1 up");
+   private static void requireLocal(int port, String name) {
+      Assumptions.assumeTrue(answers(port),
+          name + " is not running; start the local resources with bootstrap/local/local.ps1 up");
    }
 
    static final CopyOnWriteArrayList<String> RECEIVED = new CopyOnWriteArrayList<>();
@@ -83,48 +86,64 @@ class LocalResourcesSmokeTest {
 
    @Configuration(proxyBeanMethods = false)
    @Import({ServiceWithOneInboxUseCase.class,
-       KafkaClientConfiguration.class, DynamoDbClientConfiguration.class,
-       KafkaOutboxAdapterConfiguration.class, KafkaInboxAdapterConfiguration.class})
+       KafkaClientConfiguration.class, RabbitClientConfiguration.class, DynamoDbClientConfiguration.class,
+       KafkaOutboxAdapterConfiguration.class, KafkaInboxAdapterConfiguration.class,
+       RabbitOutboxAdapterConfiguration.class, RabbitInboxAdapterConfiguration.class})
    static class Service {
    }
 
-   private static ConfigurableApplicationContext startService() {
+   private static ConfigurableApplicationContext startService(String client) {
+      String group = "smoke-" + UUID.randomUUID();
       return new SpringApplicationBuilder(Service.class)
           .web(WebApplicationType.NONE)
           .profiles("local")
           .properties(
-              "ecom.outbox.client=kafka.core",
-              "ecom.inbox.client=kafka.core",
-              "ecom.adapter.kafka.consumer.group-id=smoke-" + UUID.randomUUID())
+              "ecom.outbox.client=" + client,
+              "ecom.inbox.client=" + client,
+              "ecom.adapter.kafka.consumer.group-id=" + group,
+              "ecom.adapter.rabbit.consumer.group=" + group)
           .run();
+   }
+
+   private static void publishAndExpectDelivery(ConfigurableApplicationContext context, String broker) throws Exception {
+      String payload = "{\"aggregate\":\"" + AGGREGATE + "\",\"action\":\"created\",\"data\":{\"id\":\"1\"}}";
+      context.getBean(OutboxPublisher.class).publish(new OutboxMessage() {
+         public UUID id() { return UUID.randomUUID(); }
+         public String aggregateType() { return AGGREGATE; }
+         public String aggregateId() { return "1"; }
+         public String payload() { return payload; }
+         public Instant createdAt() { return Instant.now(); }
+      });
+
+      assertThat(DELIVERED.await(60, TimeUnit.SECONDS))
+          .as("the inbox listener should receive the message published to " + broker)
+          .isTrue();
+      assertThat(RECEIVED).containsExactly(AGGREGATE + ".created|{\"id\":\"1\"}");
    }
 
    @Test
    void anOutboxMessageTravelsThroughRealKafkaIntoTheInboxListener() throws Exception {
-      requireLocalResources();
+      requireLocal(9092, "Kafka");
 
-      try (ConfigurableApplicationContext context = startService()) {
-         String payload = "{\"aggregate\":\"" + AGGREGATE + "\",\"action\":\"created\",\"data\":{\"id\":\"1\"}}";
-         context.getBean(OutboxPublisher.class).publish(new OutboxMessage() {
-            public UUID id() { return UUID.randomUUID(); }
-            public String aggregateType() { return AGGREGATE; }
-            public String aggregateId() { return "1"; }
-            public String payload() { return payload; }
-            public Instant createdAt() { return Instant.now(); }
-         });
+      try (ConfigurableApplicationContext context = startService("kafka.core")) {
+         publishAndExpectDelivery(context, "Kafka");
+      }
+   }
 
-         assertThat(DELIVERED.await(60, TimeUnit.SECONDS))
-             .as("the inbox listener should receive the message published to Kafka")
-             .isTrue();
-         assertThat(RECEIVED).containsExactly(AGGREGATE + ".created|{\"id\":\"1\"}");
+   @Test
+   void anOutboxMessageTravelsThroughRealRabbitMqIntoTheInboxListener() throws Exception {
+      requireLocal(5672, "RabbitMQ");
+
+      try (ConfigurableApplicationContext context = startService("rabbit.core")) {
+         publishAndExpectDelivery(context, "RabbitMQ");
       }
    }
 
    @Test
    void theDynamoDbClientReadsAndWritesAgainstDynamoDbLocal() {
-      requireLocalResources();
+      requireLocal(8000, "DynamoDB Local");
 
-      try (ConfigurableApplicationContext context = startService()) {
+      try (ConfigurableApplicationContext context = startService("")) {
          DynamoDbClient dynamo = context.getBean(DynamoDbClients.class).client("main");
          String table = "smoke_" + UUID.randomUUID().toString().replace("-", "");
 

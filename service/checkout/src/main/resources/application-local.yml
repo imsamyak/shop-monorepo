@@ -16,5 +16,5 @@ services:
 
 ecom:
   outbox:
-    # Publish the checkout events through the Kafka client the profile calls "core"; infra says where it is.
-    client: kafka.core
+    # Publish the checkout events through the RabbitMQ client the profile calls "core"; infra says where it is.
+    client: rabbit.core

@@ -1,5 +1,5 @@
 # Where the clients live when the "local" profile is active: Docker containers on this machine.
-# Only "where": which client a module uses is the service's decision (ecom.outbox.client: kafka.core).
+# Only "where": which client a module uses is the service's decision (ecom.outbox.client: rabbit.core).
 # Every name defined here must also exist in the other profiles' files.
 # Loaded at the lowest priority, so the service's own configuration overrides anything here.
 # Only non-secret values belong in these files. Real AWS access uses the IAM role / default credential chain.
@@ -8,6 +8,14 @@ ecom:
     kafka:
       core:
         bootstrap-servers: localhost:9092
+
+    rabbit:
+      core:
+        host: localhost
+        port: 5672
+        # the broker's built-in local account; it only accepts connections from this machine
+        username: guest
+        password: guest
 
     dynamodb:
       main:

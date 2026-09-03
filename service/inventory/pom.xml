@@ -48,8 +48,8 @@
 
         <!-- The client library the chosen adapters need; infra only declares it as optional. -->
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
+            <groupId>org.springframework.amqp</groupId>
+            <artifactId>spring-rabbit</artifactId>
         </dependency>
 
         <dependency>
