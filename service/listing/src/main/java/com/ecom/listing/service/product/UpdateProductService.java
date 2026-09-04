@@ -44,7 +44,8 @@ public class UpdateProductService implements UpdateProductUseCase {
       return new Updated(
           data.id().toString(),
           data.title(),
-          data.description()
+          data.description(),
+          data.version()
       );
    }
 }

@@ -58,7 +58,7 @@ public final class RecordCheckoutServices {
       @Override
       public DomainEvent buildEvent(RecordCheckouts.DraftCmd cmd, RecordedCheckout result) {
          CheckoutResult checkout = result.checkout();
-         return new Drafted(checkout.checkoutId().toString(), checkout.customerId().toString(), eventItems(checkout));
+         return new Drafted(checkout.checkoutId().toString(), checkout.customerId().toString(), eventItems(checkout), checkout.version());
       }
    }
 
@@ -89,7 +89,8 @@ public final class RecordCheckoutServices {
             return null;
          }
          CheckoutResult checkout = result.checkout();
-         return new Committed(checkout.checkoutId().toString(), checkout.customerId().toString(), eventItems(checkout));
+         return new Committed(checkout.checkoutId().toString(), checkout.customerId().toString(), eventItems(checkout),
+               checkout.version());
       }
    }
 
@@ -119,7 +120,7 @@ public final class RecordCheckoutServices {
 
       @Override
       public DomainEvent buildEvent(RecordCheckouts.CancelCmd cmd, RecordedCheckout result) {
-         return result.changed() ? new Cancelled(result.checkout().checkoutId().toString(), "USER_CANCELLED") : null;
+         return result.changed() ? new Cancelled(result.checkout().checkoutId().toString(), "USER_CANCELLED", result.checkout().version()) : null;
       }
    }
 
@@ -145,7 +146,7 @@ public final class RecordCheckoutServices {
 
       @Override
       public DomainEvent buildEvent(RecordCheckouts.ExpireCmd cmd, RecordedCheckout result) {
-         return result.changed() ? new Cancelled(result.checkout().checkoutId().toString(), "EXPIRED") : null;
+         return result.changed() ? new Cancelled(result.checkout().checkoutId().toString(), "EXPIRED", result.checkout().version()) : null;
       }
    }
 }

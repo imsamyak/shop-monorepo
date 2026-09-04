@@ -53,7 +53,9 @@ public class UpdateSkuService implements UpdateSkuUseCase {
       return new Updated(
           data.skuId().toString(),
           data.productId().toString(),
-          data.price()
+          data.price(),
+          data.properties(),
+          data.version()
       );
    }
 }

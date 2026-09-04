@@ -17,6 +17,7 @@ public class InventoryMapper {
             .reservedQuantity(item.getReservedQuantity())
             .availableQuantity(item.getAvailableQuantity())
             .quantityChange(quantityChange)
+            .version(item.version())
             .build();
    }
 }

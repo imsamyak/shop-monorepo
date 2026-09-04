@@ -13,6 +13,7 @@ public record ReservationResult(
       Long skuId,
       int quantity,
       ReservationStatus status,
-      Instant expiresAt
+      Instant expiresAt,
+      long version
 ) {
 }

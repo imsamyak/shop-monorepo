@@ -4,6 +4,7 @@ import com.ecom.contract.inventory.Reservation;
 import com.ecom.inventory.domain.entity.InventoryItem;
 import com.ecom.inventory.domain.entity.InventoryReservation;
 import com.ecom.inventory.domain.exception.item.InventoryNotFoundException;
+import com.ecom.inventory.port.in.usecase.item.dto.result.InventoryResult;
 import com.ecom.inventory.port.in.usecase.reservation.ReserveInventoryUseCase;
 import com.ecom.inventory.port.in.usecase.reservation.dto.command.ReserveInventoryCmd;
 import com.ecom.inventory.port.in.usecase.reservation.dto.result.ReservationsResult;
@@ -11,6 +12,7 @@ import com.ecom.inventory.port.out.persistence.item.LoadInventoryForUpdatePort;
 import com.ecom.inventory.port.out.persistence.item.SaveInventoryPort;
 import com.ecom.inventory.port.out.persistence.reservation.LoadReservationPort;
 import com.ecom.inventory.port.out.persistence.reservation.SaveReservationPort;
+import com.ecom.inventory.service.item.mapper.InventoryMapper;
 import com.ecom.inventory.service.reservation.mapper.ReservationMapper;
 import com.ecom.shared.messaging.DomainEvent;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -40,13 +43,14 @@ public class ReserveInventoryService implements ReserveInventoryUseCase {
    private final SaveInventoryPort saveInventoryPort;
    private final SaveReservationPort saveReservationPort;
    private final ReservationMapper reservationMapper;
+   private final InventoryMapper inventoryMapper;
 
    @Override
    @Transactional
    public ReservationsResult execute(ReserveInventoryCmd cmd) {
       List<InventoryReservation> existing = loadReservationPort.findByReferenceId(cmd.referenceId());
       if (!existing.isEmpty()) {
-         return new ReservationsResult(reservationMapper.toResultList(existing), List.of());
+         return new ReservationsResult(reservationMapper.toResultList(existing), List.of(), List.of());
       }
 
       Map<Long, Integer> wanted = new TreeMap<>();
@@ -59,20 +63,22 @@ public class ReserveInventoryService implements ReserveInventoryUseCase {
 
       Instant expiresAt = Instant.now().plusSeconds(cmd.ttlSeconds());
       List<InventoryReservation> reservations = new ArrayList<>();
+      Map<Long, InventoryResult> stock = new LinkedHashMap<>();
       for (Map.Entry<Long, Integer> line : wanted.entrySet()) {
          InventoryItem item = items.get(line.getKey());
          if (item == null) {
             throw InventoryNotFoundException.of(line.getKey());
          }
          item.reserve(line.getValue());
-         saveInventoryPort.save(item);
+         stock.put(item.getSkuId(), inventoryMapper.toResult(saveInventoryPort.save(item), 0));
          reservations.add(InventoryReservation.of(cmd.referenceId(), line.getKey(), line.getValue(), expiresAt));
       }
 
       List<InventoryReservation> saved = saveReservationPort.saveAll(reservations);
       return new ReservationsResult(
             reservationMapper.toResultList(saved),
-            saved.stream().map(InventoryReservation::getId).toList());
+            saved.stream().map(InventoryReservation::getId).toList(),
+            new ArrayList<>(stock.values()));
    }
 
    @Override
@@ -80,11 +86,14 @@ public class ReserveInventoryService implements ReserveInventoryUseCase {
       if (result == null || result.isReplay()) {
          return List.of();
       }
-      return result.reservations().stream()
+      List<DomainEvent> events = new ArrayList<>(result.reservations().stream()
             .map(r -> (DomainEvent) new Reservation.Created(
                   r.reservationId().toString(),
                   r.referenceId(),
-                  List.of(new Reservation.ReservedItem(String.valueOf(r.skuId()), r.quantity()))))
-            .toList();
+                  List.of(new Reservation.ReservedItem(String.valueOf(r.skuId()), r.quantity())),
+                  r.version()))
+            .toList());
+      events.addAll(StockEvents.availabilityChanged(result.stock()));
+      return events;
    }
 }

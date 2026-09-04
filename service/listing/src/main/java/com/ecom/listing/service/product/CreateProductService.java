@@ -38,7 +38,8 @@ public class CreateProductService implements CreateProductUseCase {
           data.sellerId().toString(),
           data.title(),
           data.description(),
-          data.defaultPrice()
+          data.defaultPrice(),
+          data.version()
       );
    }
 }

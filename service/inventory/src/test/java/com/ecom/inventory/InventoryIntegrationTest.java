@@ -17,6 +17,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -145,6 +146,48 @@ class InventoryIntegrationTest {
       assertThat(jdbc.queryForObject(
          "select count(*) from outbox_events where aggregate_type = 'inventory' and aggregate_id = ?",
          Integer.class, String.valueOf(skuId))).isEqualTo(1);
+   }
+
+   /** The announced events of one aggregate, oldest first, as {@code {action, data}} envelopes. */
+   private List<JsonNode> announced(String aggregateType, String aggregateId) throws Exception {
+      List<JsonNode> events = new java.util.ArrayList<>();
+      for (String payload : jdbc.queryForList(
+         "select payload from outbox_events where aggregate_type = ? and aggregate_id = ? order by created_at",
+         String.class, aggregateType, aggregateId)) {
+         events.add(JSON.readTree(payload));
+      }
+      return events;
+   }
+
+   @Test
+   void stockEventsCarryAGrowingVersionAndTheStockAfterEveryReservationChange() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+      Reply reserved = call("POST", "/inventory/reservations", reserveBody("chk-" + UUID.randomUUID(), 60, sku, 4));
+      String reservationId = reserved.body().path("reservations").get(0).path("reservationId").asText();
+      call("POST", "/inventory/reservations/commit", "{\"reservationIds\":[\"" + reservationId + "\"]}");
+      Reply second = call("POST", "/inventory/reservations", reserveBody("chk-" + UUID.randomUUID(), 60, sku, 3));
+      String secondId = second.body().path("reservations").get(0).path("reservationId").asText();
+      call("POST", "/inventory/reservations/release", "{\"reservationIds\":[\"" + secondId + "\"]}");
+
+      List<JsonNode> events = announced("inventory", String.valueOf(sku));
+
+      assertThat(events.stream().map(e -> e.path("action").asText()).toList()).containsExactly(
+         "stock-added", "availability-changed", "availability-changed", "availability-changed", "availability-changed");
+      List<Long> versions = events.stream().map(e -> e.path("data").path("version").asLong()).toList();
+      assertThat(versions).isSorted().doesNotHaveDuplicates();
+      // reserved 4 of 10 -> committed (total 6) -> reserved 3 -> released
+      assertThat(events.get(0).path("data").path("availableStock").asInt()).isEqualTo(10);
+      assertThat(events.get(1).path("data").path("reservedStock").asInt()).isEqualTo(4);
+      assertThat(events.get(1).path("data").path("availableStock").asInt()).isEqualTo(6);
+      assertThat(events.get(2).path("data").path("totalStock").asInt()).isEqualTo(6);
+      assertThat(events.get(2).path("data").path("reservedStock").asInt()).isZero();
+      assertThat(events.get(3).path("data").path("availableStock").asInt()).isEqualTo(3);
+      assertThat(events.get(4).path("data").path("availableStock").asInt()).isEqualTo(6);
+
+      List<JsonNode> reservation = announced("reservation", reservationId);
+      assertThat(reservation.stream().map(e -> e.path("action").asText()).toList()).containsExactly("created", "committed");
+      assertThat(reservation.get(1).path("data").path("version").asLong())
+         .isGreaterThan(reservation.get(0).path("data").path("version").asLong());
    }
 
    // ----------------------------------------------------------- reservations

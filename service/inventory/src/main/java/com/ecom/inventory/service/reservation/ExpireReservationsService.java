@@ -3,6 +3,7 @@ package com.ecom.inventory.service.reservation;
 import com.ecom.contract.inventory.Reservation;
 import com.ecom.inventory.domain.entity.InventoryItem;
 import com.ecom.inventory.domain.entity.InventoryReservation;
+import com.ecom.inventory.port.in.usecase.item.dto.result.InventoryResult;
 import com.ecom.inventory.port.in.usecase.reservation.ExpireReservationsUseCase;
 import com.ecom.inventory.port.in.usecase.reservation.dto.command.ExpireReservationsCmd;
 import com.ecom.inventory.port.in.usecase.reservation.dto.result.ExpireReservationsResult;
@@ -12,6 +13,7 @@ import com.ecom.inventory.port.out.persistence.item.SaveInventoryPort;
 import com.ecom.inventory.port.out.persistence.reservation.LoadReservationForUpdatePort;
 import com.ecom.inventory.port.out.persistence.reservation.LoadReservationPort;
 import com.ecom.inventory.port.out.persistence.reservation.SaveReservationPort;
+import com.ecom.inventory.service.item.mapper.InventoryMapper;
 import com.ecom.inventory.service.reservation.mapper.ReservationMapper;
 import com.ecom.shared.messaging.DomainEvent;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,9 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,6 +45,7 @@ public class ExpireReservationsService implements ExpireReservationsUseCase {
    private final SaveInventoryPort saveInventoryPort;
    private final SaveReservationPort saveReservationPort;
    private final ReservationMapper reservationMapper;
+   private final InventoryMapper inventoryMapper;
 
    @Override
    @Transactional
@@ -51,6 +56,7 @@ public class ExpireReservationsService implements ExpireReservationsUseCase {
       List<UUID> candidates = loadReservationPort.findExpiredPendingIds(now, limit);
 
       List<ReservationResult> expired = new ArrayList<>();
+      Map<Long, InventoryResult> stock = new LinkedHashMap<>();
       for (UUID id : candidates) {
          Optional<InventoryReservation> locked = loadReservationForUpdatePort.loadByIdForUpdate(id);
          if (locked.isEmpty()) {
@@ -65,14 +71,14 @@ public class ExpireReservationsService implements ExpireReservationsUseCase {
          Optional<InventoryItem> item = loadInventoryForUpdatePort.loadBySkuIdForUpdate(reservation.getSkuId());
          if (item.isPresent()) {
             item.get().release(reservation.getQuantity());
-            saveInventoryPort.save(item.get());
+            stock.put(reservation.getSkuId(), inventoryMapper.toResult(saveInventoryPort.save(item.get()), 0));
          }
          saveReservationPort.save(reservation);
          expired.add(reservationMapper.toResult(reservation));
       }
 
       return new ExpireReservationsResult(expired.size(),
-            expired.stream().map(ReservationResult::reservationId).toList(), expired);
+            expired.stream().map(ReservationResult::reservationId).toList(), expired, new ArrayList<>(stock.values()));
    }
 
    @Override
@@ -80,8 +86,10 @@ public class ExpireReservationsService implements ExpireReservationsUseCase {
       if (result == null) {
          return List.of();
       }
-      return result.expired().stream()
-            .map(r -> (DomainEvent) new Reservation.Expired(r.reservationId().toString(), r.referenceId()))
-            .toList();
+      List<DomainEvent> events = new ArrayList<>(result.expired().stream()
+            .map(r -> (DomainEvent) new Reservation.Expired(r.reservationId().toString(), r.referenceId(), r.version()))
+            .toList());
+      events.addAll(StockEvents.availabilityChanged(result.stock()));
+      return events;
    }
 }

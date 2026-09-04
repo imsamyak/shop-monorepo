@@ -44,6 +44,7 @@ public class AddStockService implements AddStockUseCase {
       if (result == null) {
          return null;
       }
-      return new StockAdded(String.valueOf(result.skuId()), cmd.quantity(), result.totalQuantity());
+      return new StockAdded(String.valueOf(result.skuId()), cmd.quantity(), result.totalQuantity(),
+            result.availableQuantity(), result.version());
    }
 }

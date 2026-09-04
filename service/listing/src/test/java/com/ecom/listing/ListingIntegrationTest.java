@@ -84,6 +84,34 @@ class ListingIntegrationTest {
    }
 
    @Test
+   void productAndSkuEventsCarryTheirGrowingVersionAndTheSkuProperties() throws Exception {
+      String productId = createProduct(newSeller(), "Laptop Pro").text("id");
+      Reply sku = createSku(productId, "{\"color\":\"red\"}");
+      call("PATCH", "/products/" + productId, "{\"version\":0,\"title\":\"Laptop Pro 2\"}");
+      call("PUT", "/products/" + productId + "/skus/" + sku.body().path("skuId").asLong(),
+         "{\"version\":0,\"price\":30.00}");
+
+      List<JsonNode> product = events("product", productId);
+      assertThat(product.stream().map(e -> e.path("action").asText()).toList()).containsExactly("created", "updated");
+      assertThat(product.stream().map(e -> e.path("data").path("version").asLong()).toList()).containsExactly(0L, 1L);
+
+      List<JsonNode> skus = events("sku", sku.text("skuId"));
+      assertThat(skus.stream().map(e -> e.path("action").asText()).toList()).containsExactly("created", "updated");
+      assertThat(skus.stream().map(e -> e.path("data").path("version").asLong()).toList()).containsExactly(0L, 1L);
+      assertThat(skus.get(0).path("data").path("properties").path("color").asText()).isEqualTo("red");
+   }
+
+   private List<JsonNode> events(String aggregateType, String aggregateId) throws Exception {
+      List<JsonNode> events = new java.util.ArrayList<>();
+      for (String payload : jdbc.queryForList(
+         "select payload from outbox_events where aggregate_type = ? and aggregate_id = ? order by created_at",
+         String.class, aggregateType, aggregateId)) {
+         events.add(JSON.readTree(payload));
+      }
+      return events;
+   }
+
+   @Test
    void theSellerIsRequired() throws Exception {
       Reply missing = call("POST", "/products", "{\"title\":\"Laptop Pro\",\"description\":\"d\",\"defaultPrice\":10.00}");
 

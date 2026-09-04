@@ -66,9 +66,9 @@ public class DeleteProductService implements DeleteProductUseCase {
       String productId = data.id().toString();
       List<DomainEvent> events = new ArrayList<>();
       for (Long skuId : data.deletedSkuIds()) {
-         events.add(new Sku.Deleted(skuId.toString(), productId));
+         events.add(new Sku.Deleted(skuId.toString(), productId, data.version()));
       }
-      events.add(new Deleted(productId));
+      events.add(new Deleted(productId, data.version()));
       return events;
    }
 }

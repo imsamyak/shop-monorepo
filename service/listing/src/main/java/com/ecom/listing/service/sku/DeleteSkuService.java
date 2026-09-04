@@ -43,7 +43,8 @@ public class DeleteSkuService implements DeleteSkuUseCase {
       }
       return new Deleted(
           data.skuId().toString(),
-          data.productId().toString()
+          data.productId().toString(),
+          data.version()
       );
    }
 }

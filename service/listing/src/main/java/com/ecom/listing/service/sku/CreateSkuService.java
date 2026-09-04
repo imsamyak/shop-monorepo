@@ -52,7 +52,9 @@ public class CreateSkuService implements CreateSkuUseCase {
           data.skuId().toString(),
           data.productId().toString(),
           data.sellerId().toString(),
-          data.price()
+          data.price(),
+          data.properties(),
+          data.version()
       );
    }
 }

@@ -191,6 +191,17 @@ class CheckoutIntegrationTest {
       return jdbc.queryForObject("select status from checkouts where id = ?", String.class, UUID.fromString(checkoutId));
    }
 
+   @Test
+   void eachCheckoutEventCarriesTheCheckoutVersionAfterItsChange() throws Exception {
+      String id = draftId(UUID.randomUUID());
+      call("POST", "/checkouts/" + id + "/commit", null);
+
+      long drafted = JSON.readTree(events(id, "drafted").get(0)).path("data").path("version").asLong();
+      long committed = JSON.readTree(events(id, "committed").get(0)).path("data").path("version").asLong();
+
+      assertThat(committed).isGreaterThan(drafted);
+   }
+
    // ---- drafting -----------------------------------------------------------------------------------------------
 
    @Test

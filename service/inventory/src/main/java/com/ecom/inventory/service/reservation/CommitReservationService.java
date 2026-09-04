@@ -8,6 +8,7 @@ import com.ecom.inventory.domain.exception.item.InventoryNotFoundException;
 import com.ecom.inventory.domain.exception.reservation.InvalidReservationStateException;
 import com.ecom.inventory.domain.exception.reservation.ReservationExpiredException;
 import com.ecom.inventory.domain.exception.reservation.ReservationNotFoundException;
+import com.ecom.inventory.port.in.usecase.item.dto.result.InventoryResult;
 import com.ecom.inventory.port.in.usecase.reservation.CommitReservationUseCase;
 import com.ecom.inventory.port.in.usecase.reservation.dto.command.CommitReservationsCmd;
 import com.ecom.inventory.port.in.usecase.reservation.dto.result.ReservationsResult;
@@ -15,6 +16,7 @@ import com.ecom.inventory.port.out.persistence.item.LoadInventoryForUpdatePort;
 import com.ecom.inventory.port.out.persistence.item.SaveInventoryPort;
 import com.ecom.inventory.port.out.persistence.reservation.LoadReservationForUpdatePort;
 import com.ecom.inventory.port.out.persistence.reservation.SaveReservationPort;
+import com.ecom.inventory.service.item.mapper.InventoryMapper;
 import com.ecom.inventory.service.reservation.mapper.ReservationMapper;
 import com.ecom.shared.messaging.DomainEvent;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +49,7 @@ public class CommitReservationService implements CommitReservationUseCase {
    private final SaveInventoryPort saveInventoryPort;
    private final SaveReservationPort saveReservationPort;
    private final ReservationMapper reservationMapper;
+   private final InventoryMapper inventoryMapper;
 
    @Override
    @Transactional
@@ -72,6 +77,7 @@ public class CommitReservationService implements CommitReservationUseCase {
          }
       }
 
+      Map<Long, InventoryResult> stock = new LinkedHashMap<>();
       if (!toCommit.isEmpty()) {
          Map<Long, InventoryItem> items = loadInventoryForUpdatePort
                .loadBySkuIdsForUpdate(toCommit.stream().map(InventoryReservation::getSkuId).collect(Collectors.toSet()))
@@ -85,14 +91,15 @@ public class CommitReservationService implements CommitReservationUseCase {
             }
             item.commit(reservation.getQuantity());
             reservation.commit(now);
-            saveInventoryPort.save(item);
+            stock.put(item.getSkuId(), inventoryMapper.toResult(saveInventoryPort.save(item), 0));
          }
          saveReservationPort.saveAll(toCommit);
       }
 
       return new ReservationsResult(
             reservationMapper.toResultList(reservations),
-            toCommit.stream().map(InventoryReservation::getId).toList());
+            toCommit.stream().map(InventoryReservation::getId).toList(),
+            new ArrayList<>(stock.values()));
    }
 
    @Override
@@ -101,9 +108,11 @@ public class CommitReservationService implements CommitReservationUseCase {
          return List.of();
       }
       Set<UUID> changed = Set.copyOf(result.changedIds());
-      return result.reservations().stream()
+      List<DomainEvent> events = new ArrayList<>(result.reservations().stream()
             .filter(r -> changed.contains(r.reservationId()))
-            .map(r -> (DomainEvent) new Reservation.Committed(r.reservationId().toString(), r.referenceId()))
-            .toList();
+            .map(r -> (DomainEvent) new Reservation.Committed(r.reservationId().toString(), r.referenceId(), r.version()))
+            .toList());
+      events.addAll(StockEvents.availabilityChanged(result.stock()));
+      return events;
    }
 }

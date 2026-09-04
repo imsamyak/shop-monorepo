@@ -40,6 +40,7 @@ public class RemoveStockService implements RemoveStockUseCase {
       if (result == null) {
          return null;
       }
-      return new StockAdjusted(String.valueOf(result.skuId()), result.quantityChange(), result.totalQuantity());
+      return new StockAdjusted(String.valueOf(result.skuId()), result.quantityChange(), result.totalQuantity(),
+            result.availableQuantity(), result.version());
    }
 }

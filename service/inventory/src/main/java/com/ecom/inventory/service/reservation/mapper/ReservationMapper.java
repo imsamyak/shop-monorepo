@@ -21,6 +21,7 @@ public class ReservationMapper {
             .quantity(reservation.getQuantity())
             .status(reservation.getStatus())
             .expiresAt(reservation.getExpiresAt())
+            .version(reservation.version())
             .build();
    }
 
