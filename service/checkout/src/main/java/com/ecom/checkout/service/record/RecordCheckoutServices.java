@@ -8,7 +8,9 @@ import com.ecom.checkout.domain.exception.InvalidCheckoutStateException;
 import com.ecom.checkout.port.in.usecase.dto.result.CheckoutResult;
 import com.ecom.checkout.port.in.usecase.dto.result.RecordedCheckout;
 import com.ecom.checkout.port.in.usecase.record.RecordCheckouts;
+import com.ecom.checkout.port.out.persistence.LoadCartForUpdatePort;
 import com.ecom.checkout.port.out.persistence.LoadCheckoutForUpdatePort;
+import com.ecom.checkout.port.out.persistence.SaveCartPort;
 import com.ecom.checkout.port.out.persistence.SaveCheckoutPort;
 import com.ecom.checkout.service.mapper.CheckoutMapper;
 import com.ecom.contract.checkout.Checkout.Cancelled;
@@ -68,6 +70,8 @@ public final class RecordCheckoutServices {
 
       private final LoadCheckoutForUpdatePort loadCheckoutForUpdatePort;
       private final SaveCheckoutPort saveCheckoutPort;
+      private final LoadCartForUpdatePort loadCartForUpdatePort;
+      private final SaveCartPort saveCartPort;
       private final CheckoutMapper checkoutMapper;
 
       @Override
@@ -80,7 +84,18 @@ public final class RecordCheckoutServices {
             return new RecordedCheckout(checkoutMapper.toResult(checkout), false);
          }
          checkout.commit(Instant.now());
+         removeCommittedFromCart(checkout);
          return new RecordedCheckout(checkoutMapper.toResult(saveCheckoutPort.save(checkout)), true);
+      }
+
+      /** Only the committed SKUs leave the cart, in the same transaction as the commit; the rest stays. */
+      private void removeCommittedFromCart(Checkout checkout) {
+         List<Long> skuIds = checkout.getItems().stream().map(CheckoutItem::getSkuId).toList();
+         loadCartForUpdatePort.loadByCustomerIdForUpdate(checkout.getCustomerId()).ifPresent(cart -> {
+            if (cart.removeAll(skuIds)) {
+               saveCartPort.save(cart);
+            }
+         });
       }
 
       @Override

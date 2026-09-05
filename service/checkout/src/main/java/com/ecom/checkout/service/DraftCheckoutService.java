@@ -1,5 +1,6 @@
 package com.ecom.checkout.service;
 
+import com.ecom.checkout.domain.exception.CheckoutItemsRequiredException;
 import com.ecom.checkout.domain.exception.SkuNotAvailableException;
 import com.ecom.checkout.port.in.usecase.DraftCheckoutUseCase;
 import com.ecom.checkout.port.in.usecase.dto.command.DraftCheckoutCmd;
@@ -11,6 +12,7 @@ import com.ecom.checkout.port.out.client.inventory.ReleaseStockPort;
 import com.ecom.checkout.port.out.client.inventory.ReserveStockPort;
 import com.ecom.checkout.port.out.client.inventory.ReserveStockPort.ReservedStock;
 import com.ecom.checkout.port.out.client.inventory.ReserveStockPort.StockLine;
+import com.ecom.checkout.port.out.persistence.LoadCartPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 /**
  * Creates a draft checkout:
  * <ol>
+ *   <li>takes the items from the request, or from the customer's cart when the request has none,</li>
  *   <li>looks up the real price and seller of every SKU (client prices are never used),</li>
  *   <li>reserves all the stock in ONE atomic call to inventory, keyed by the new checkout id,</li>
  *   <li>records the checkout in a short local transaction (which also writes the outbox event).</li>
@@ -44,6 +47,7 @@ public class DraftCheckoutService implements DraftCheckoutUseCase {
    private final LoadSkuPricePort loadSkuPricePort;
    private final ReserveStockPort reserveStockPort;
    private final ReleaseStockPort releaseStockPort;
+   private final LoadCartPort loadCartPort;
    private final RecordCheckouts.RecordDraft recordDraft;
 
    @Override
@@ -53,6 +57,13 @@ public class DraftCheckoutService implements DraftCheckoutUseCase {
       Map<Long, Integer> wanted = new TreeMap<>();
       for (DraftCheckoutCmd.ItemCmd item : cmd.items()) {
          wanted.merge(item.skuId(), item.quantity(), Integer::sum);
+      }
+      if (wanted.isEmpty()) {
+         loadCartPort.loadByCustomerId(customerId)
+               .ifPresent(cart -> cart.getItems().forEach(i -> wanted.merge(i.getSkuId(), i.getQuantity(), Integer::sum)));
+      }
+      if (wanted.isEmpty()) {
+         throw CheckoutItemsRequiredException.of();
       }
 
       Map<Long, SkuPrice> prices = loadSkuPricePort.loadPrices(wanted.keySet());
