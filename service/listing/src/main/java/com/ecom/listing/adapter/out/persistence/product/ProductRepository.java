@@ -2,6 +2,7 @@ package com.ecom.listing.adapter.out.persistence.product;
 
 import com.ecom.listing.domain.entity.Product;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-interface ProductRepository extends Repository<Product, UUID> {
+interface ProductRepository extends Repository<Product, UUID>, JpaSpecificationExecutor<Product> {
 
    Optional<Product> findById(UUID id);
 

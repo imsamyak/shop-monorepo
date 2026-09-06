@@ -188,7 +188,7 @@ class ListingIntegrationTest {
       assertThat(call("POST", "/products", "{not json").status()).isEqualTo(400);
       assertThat(call("GET", "/nope", null).status()).isEqualTo(404);
       assertThat(call("PUT", "/products/not-a-uuid", "{\"version\":0,\"title\":\"Valid title\"}").status()).isEqualTo(400);
-      assertThat(call("GET", "/products", null).status()).isEqualTo(405);
+      assertThat(call("DELETE", "/products", null).status()).isEqualTo(405);
    }
 
    // -------------------------------------------------------------------- SKUs
