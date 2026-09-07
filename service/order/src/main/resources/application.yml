@@ -1,0 +1,12 @@
+server:
+  port: ${PORT:8085}
+
+spring:
+  application:
+    name: order
+  profiles:
+    # The profile also selects which ecom-infra-<profile>.yml says where RabbitMQ and the other clients are.
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  jpa:
+    open-in-view: false
+    show-sql: false

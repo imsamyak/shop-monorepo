@@ -1,0 +1,15 @@
+# Runs against the containers from bootstrap/local (bootstrap/local/local.ps1 up).
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/order_db}
+    username: ${SPRING_DATASOURCE_USERNAME:ecom}
+    password: ${SPRING_DATASOURCE_PASSWORD:ecom}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+ecom:
+  # The checkout events this service builds orders from go through the RabbitMQ client the profile calls "core";
+  # infra says where it is. Nothing is published, so there is no outbox client.
+  inbox:
+    client: rabbit.core
