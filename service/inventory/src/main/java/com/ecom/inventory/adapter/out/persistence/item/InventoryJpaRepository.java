@@ -2,6 +2,8 @@ package com.ecom.inventory.adapter.out.persistence.item;
 
 import com.ecom.inventory.domain.entity.InventoryItem;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +17,10 @@ import java.util.Optional;
 interface InventoryJpaRepository extends Repository<InventoryItem, Long> {
 
    Optional<InventoryItem> findBySkuId(Long skuId);
+
+   List<InventoryItem> findBySkuIdInOrderBySkuId(Collection<Long> skuIds);
+
+   Page<InventoryItem> findAllBy(Pageable pageable);
 
    @Lock(LockModeType.PESSIMISTIC_WRITE)
    @Query("SELECT i FROM InventoryItem i WHERE i.skuId = :skuId")

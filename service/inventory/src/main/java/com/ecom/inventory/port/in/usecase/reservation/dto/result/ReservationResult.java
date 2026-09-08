@@ -1,6 +1,7 @@
 package com.ecom.inventory.port.in.usecase.reservation.dto.result;
 
 import com.ecom.inventory.domain.entity.ReservationStatus;
+import com.ecom.shared.dto.result.Result;
 import lombok.Builder;
 
 import java.time.Instant;
@@ -15,5 +16,5 @@ public record ReservationResult(
       ReservationStatus status,
       Instant expiresAt,
       long version
-) {
+) implements Result.One {
 }

@@ -39,6 +39,12 @@ public class ReservationPersistenceAdapter implements
 
    @Override
    @Transactional(readOnly = true)
+   public List<InventoryReservation> findByReferenceIdAndStatus(String referenceId, ReservationStatus status) {
+      return repository.findByReferenceIdAndStatus(referenceId, status);
+   }
+
+   @Override
+   @Transactional(readOnly = true)
    public List<InventoryReservation> findPendingBySkuId(Long skuId) {
       return repository.findBySkuIdAndStatus(skuId, ReservationStatus.PENDING);
    }

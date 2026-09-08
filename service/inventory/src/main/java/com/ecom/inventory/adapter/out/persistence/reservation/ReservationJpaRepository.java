@@ -21,6 +21,8 @@ interface ReservationJpaRepository extends Repository<InventoryReservation, UUID
 
    List<InventoryReservation> findByReferenceId(String referenceId);
 
+   List<InventoryReservation> findByReferenceIdAndStatus(String referenceId, ReservationStatus status);
+
    List<InventoryReservation> findBySkuIdAndStatus(Long skuId, ReservationStatus status);
 
    @Lock(LockModeType.PESSIMISTIC_WRITE)
