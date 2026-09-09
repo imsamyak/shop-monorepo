@@ -1,0 +1,5 @@
+# Runs against the containers from bootstrap/local (bootstrap/local/local.ps1 up).
+# Start catalog before the services that publish: an exchange drops messages that have no queue bound yet.
+ecom:
+  inbox:
+    client: rabbit.core

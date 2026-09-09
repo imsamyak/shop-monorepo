@@ -8,9 +8,13 @@ import com.ecom.infra.adapter.outbox.RabbitOutboxAdapterConfiguration;
 import com.ecom.infra.client.dynamodb.DynamoDbClientConfiguration;
 import com.ecom.infra.client.dynamodb.DynamoDbClients;
 import com.ecom.infra.client.kafka.KafkaClientConfiguration;
+import com.ecom.infra.client.mongodb.MongoClientConfiguration;
+import com.ecom.infra.client.mongodb.MongoClients;
 import com.ecom.infra.client.rabbit.RabbitClientConfiguration;
 import com.ecom.outbox.OutboxMessage;
 import com.ecom.outbox.OutboxPublisher;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.WebApplicationType;
@@ -87,6 +91,7 @@ class LocalResourcesSmokeTest {
    @Configuration(proxyBeanMethods = false)
    @Import({ServiceWithOneInboxUseCase.class,
        KafkaClientConfiguration.class, RabbitClientConfiguration.class, DynamoDbClientConfiguration.class,
+       MongoClientConfiguration.class,
        KafkaOutboxAdapterConfiguration.class, KafkaInboxAdapterConfiguration.class,
        RabbitOutboxAdapterConfiguration.class, RabbitInboxAdapterConfiguration.class})
    static class Service {
@@ -136,6 +141,26 @@ class LocalResourcesSmokeTest {
 
       try (ConfigurableApplicationContext context = startService("rabbit.core")) {
          publishAndExpectDelivery(context, "RabbitMQ");
+      }
+   }
+
+   @Test
+   void theMongoDbClientReadsAndWritesAgainstTheLocalContainer() {
+      requireLocal(27017, "MongoDB");
+
+      try (ConfigurableApplicationContext context = startService("")) {
+         MongoCollection<Document> collection = context.getBean(MongoClients.class).client("main")
+             .getDatabase("smoke_" + UUID.randomUUID().toString().replace("-", "")).getCollection("items");
+         try {
+            collection.insertOne(new Document("_id", "1").append("name", "smoke"));
+
+            Document item = collection.find(new Document("_id", "1")).first();
+
+            assertThat(item).isNotNull();
+            assertThat(item.getString("name")).isEqualTo("smoke");
+         } finally {
+            collection.drop();
+         }
       }
    }
 

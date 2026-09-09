@@ -1,0 +1,11 @@
+# No ecom.inbox.client here: nothing is consumed from RabbitMQ, so the tests feed events to the inbox directly.
+# The tests that need MongoDB use the container from bootstrap/local and skip themselves when it is not running.
+ecom:
+  client:
+    mongodb:
+      main:
+        uri: mongodb://localhost:27017
+
+catalog:
+  mongodb:
+    database: catalog_test

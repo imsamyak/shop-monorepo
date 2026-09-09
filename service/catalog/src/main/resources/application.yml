@@ -1,0 +1,27 @@
+server:
+  port: ${PORT:8087}
+
+spring:
+  application:
+    name: catalog
+  profiles:
+    # The profile also selects which ecom-infra-<profile>.yml says where RabbitMQ and MongoDB are.
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  autoconfigure:
+    # The inbox module ships with JPA, but catalog keeps everything in MongoDB and has no SQL database.
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+      - org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration
+
+# Events are applied by version (duplicates are harmless), so the SQL-backed inbox cleaner has nothing to clean.
+inbox:
+  cleaner:
+    enabled: false
+
+catalog:
+  mongodb:
+    # which of the profile's ecom.client.mongodb.<name> clients to use, and the database on it
+    client: main
+    database: catalog

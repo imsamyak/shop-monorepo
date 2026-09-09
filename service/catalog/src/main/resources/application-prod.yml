@@ -1,0 +1,6 @@
+# Production: every connection detail and secret must come from the environment (no defaults).
+# Where RabbitMQ is comes from ecom-infra-prod.yml or from ECOM_CLIENT_RABBIT_CORE_HOST; where MongoDB is (with its
+# credentials) from ECOM_CLIENT_MONGODB_MAIN_URI.
+ecom:
+  inbox:
+    client: rabbit.core

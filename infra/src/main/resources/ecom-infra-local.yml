@@ -24,3 +24,8 @@ ecom:
         # DynamoDB Local requires some key but does not check it
         access-key-id: local
         secret-access-key: local
+
+    mongodb:
+      main:
+        # the local container runs without authentication
+        uri: mongodb://localhost:27017

@@ -22,6 +22,7 @@
         <module>inventory</module>
         <module>checkout</module>
         <module>order</module>
+        <module>catalog</module>
     </modules>
 
 </project>

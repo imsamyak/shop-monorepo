@@ -1,5 +1,6 @@
 com.ecom.infra.client.kafka.KafkaClientConfiguration
 com.ecom.infra.client.dynamodb.DynamoDbClientConfiguration
+com.ecom.infra.client.mongodb.MongoClientConfiguration
 com.ecom.infra.adapter.outbox.KafkaOutboxAdapterConfiguration
 com.ecom.infra.adapter.inbox.KafkaInboxAdapterConfiguration
 com.ecom.infra.client.rabbit.RabbitClientConfiguration
