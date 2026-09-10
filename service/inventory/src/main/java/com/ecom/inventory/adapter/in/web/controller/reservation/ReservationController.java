@@ -10,6 +10,8 @@ import com.ecom.inventory.port.in.usecase.reservation.ReleaseReservationUseCase;
 import com.ecom.inventory.port.in.usecase.reservation.ReserveInventoryUseCase;
 import com.ecom.inventory.port.in.usecase.reservation.dto.command.ExpireReservationsCmd;
 import jakarta.validation.Valid;
+import com.ecom.security.RequireRole;
+import com.ecom.security.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/inventory/reservations")
+@RequireRole({UserRole.ROLE_SYSTEM, UserRole.ROLE_ADMIN})
 @RequiredArgsConstructor
 public class ReservationController {
 

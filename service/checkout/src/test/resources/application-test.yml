@@ -18,7 +18,11 @@ checkout:
 
 # The tests replace both with a local stub server.
 services:
+  identity:
+    base-url: http://localhost:1
+    client-id: checkout-service
+    client-secret: test-secret
   inventory:
     base-url: http://localhost:1
-  product-query:
+  listing:
     base-url: http://localhost:1

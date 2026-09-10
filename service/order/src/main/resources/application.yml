@@ -10,3 +10,9 @@ spring:
   jpa:
     open-in-view: false
     show-sql: false
+
+ecom:
+  security:
+    jwt:
+      # Tokens are signed by the identity service; this service only verifies them.
+      issuer: ${JWT_ISSUER:ecom-identity}

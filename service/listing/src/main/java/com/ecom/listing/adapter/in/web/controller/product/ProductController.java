@@ -12,9 +12,10 @@ import com.ecom.listing.port.in.usecase.product.UpdateProductUseCase;
 import com.ecom.listing.port.in.usecase.product.dto.command.DeleteProductCmd;
 import com.ecom.listing.port.in.usecase.product.dto.query.GetProductQuery;
 import com.ecom.listing.port.in.usecase.product.dto.query.ListProductsQuery;
-import com.ecom.listing.port.in.usecase.product.dto.query.ProductSort;
 import com.ecom.listing.port.in.usecase.product.dto.result.ProductResult;
-import com.ecom.shared.exception.validation.InvalidCommandException;
+import com.ecom.security.Caller;
+import com.ecom.security.RequireRole;
+import com.ecom.security.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.net.URI;
-import java.util.Locale;
 import java.util.UUID;
 
 @RestController
@@ -41,38 +41,23 @@ public class ProductController {
       return ResponseEntity.ok(ProductResponse.from(getProductUseCase.execute(new GetProductQuery(id))));
    }
 
-   /** {@code sort} is {@code field,direction} with field {@code createdAt} or {@code title}, e.g. {@code title,asc}. */
+   /** Anyone can list; the query string is bound straight into {@link ListProductsQuery}. */
    @GetMapping
-   public ResponseEntity<ProductPageResponse> listProducts(
-         @RequestParam(required = false) UUID sellerId,
-         @RequestParam(required = false) String title,
-         @RequestParam(defaultValue = "0") int page,
-         @RequestParam(defaultValue = "20") int size,
-         @RequestParam(defaultValue = "createdAt,desc") String sort
-   ) {
-      ListProductsQuery query = new ListProductsQuery(sellerId, title, page, size, parseSort(sort));
+   public ResponseEntity<ProductPageResponse> listProducts(@Valid ListProductsQuery query) {
       return ResponseEntity.ok(ProductPageResponse.from(listProductsUseCase.execute(query)));
    }
 
-   private static ProductSort parseSort(String sort) {
-      return switch (sort.strip().toLowerCase(Locale.ROOT)) {
-         case "createdat,desc" -> ProductSort.CREATED_AT_DESC;
-         case "createdat,asc", "createdat" -> ProductSort.CREATED_AT_ASC;
-         case "title,asc", "title" -> ProductSort.TITLE_ASC;
-         case "title,desc" -> ProductSort.TITLE_DESC;
-         default -> throw InvalidCommandException.of(
-            "Unsupported sort '" + sort + "'. Use createdAt or title, followed by ,asc or ,desc");
-      };
-   }
-
+   /** Sellers only: the product belongs to the seller in the access token. */
    @PostMapping
+   @RequireRole(UserRole.ROLE_SELLER)
    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
-      ProductResult result = createProductUseCase.execute(request.toCommand());
+      ProductResult result = createProductUseCase.execute(request.toCommand(Caller.sellerId()));
       ProductResponse response = ProductResponse.from(result);
       return ResponseEntity.created(URI.create("/products/" + response.id())).body(response);
    }
 
    @PatchMapping("/{id}")
+   @RequireRole({UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
    public ResponseEntity<ProductResponse> updateProduct(
          @PathVariable UUID id,
          @Valid @RequestBody UpdateProductRequest request
@@ -82,6 +67,7 @@ public class ProductController {
    }
 
    @PutMapping("/{id}")
+   @RequireRole({UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
    public ResponseEntity<ProductResponse> putProduct(
          @PathVariable UUID id,
          @Valid @RequestBody UpdateProductRequest request
@@ -91,6 +77,7 @@ public class ProductController {
    }
 
    @DeleteMapping("/{id}")
+   @RequireRole({UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
    public ResponseEntity<ProductResponse> deleteProduct(
          @PathVariable UUID id,
          @RequestParam long version

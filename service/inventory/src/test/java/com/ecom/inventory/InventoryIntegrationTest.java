@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -34,6 +36,11 @@ class InventoryIntegrationTest {
    private static final ObjectMapper JSON = new ObjectMapper();
    private static final AtomicLong SKU_IDS = new AtomicLong(1_000);
 
+   @DynamicPropertySource
+   static void jwt(DynamicPropertyRegistry registry) {
+      TestTokens.register(registry);
+   }
+
    @Value("${local.server.port}")
    int port;
 
@@ -54,9 +61,17 @@ class InventoryIntegrationTest {
       }
    }
 
+   /** Calls as an admin, who may do everything; use the four-argument form to act as someone else or anonymously. */
    private Reply call(String method, String path, String body) throws Exception {
+      return call(method, path, body, TestTokens.admin());
+   }
+
+   private Reply call(String method, String path, String body, String token) throws Exception {
       HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
          .header("Content-Type", "application/json");
+      if (token != null) {
+         request.header("Authorization", "Bearer " + token);
+      }
       request.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
       HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
       JsonNode json = response.body() == null || response.body().isBlank() ? JSON.createObjectNode() : JSON.readTree(response.body());
@@ -188,6 +203,60 @@ class InventoryIntegrationTest {
       assertThat(reservation.stream().map(e -> e.path("action").asText()).toList()).containsExactly("created", "committed");
       assertThat(reservation.get(1).path("data").path("version").asLong())
          .isGreaterThan(reservation.get(0).path("data").path("version").asLong());
+   }
+
+   // ------------------------------------------------------------ who may do what
+
+   @Test
+   void stockCanOnlyBeChangedByTheSellerWhoOwnsTheSkuOrAnAdmin() throws Exception {
+      UUID owner = UUID.randomUUID();
+      long sku = newSku(owner);
+      String add = "{\"quantity\":5}";
+      String path = "/inventory/" + sku + "/stock/add";
+
+      assertThat(call("POST", path, add, null).status()).as("anonymous").isEqualTo(401);
+      assertThat(call("POST", path, add, TestTokens.buyer(UUID.randomUUID())).status()).as("buyer").isEqualTo(403);
+      assertThat(call("POST", path, add, TestTokens.system()).status()).as("other service").isEqualTo(403);
+      assertThat(call("POST", path, add, TestTokens.seller(UUID.randomUUID())).status()).as("another seller").isEqualTo(403);
+      assertThat(total(sku)).isZero();
+
+      assertThat(call("POST", path, add, TestTokens.seller(owner)).status()).as("owner").isEqualTo(200);
+      assertThat(call("POST", path, add, TestTokens.admin()).status()).as("admin").isEqualTo(200);
+      assertThat(total(sku)).isEqualTo(10);
+   }
+
+   @Test
+   void aSellerReadsOnlyTheirOwnStockAndBulkReadsAreForAdminsAndServices() throws Exception {
+      UUID owner = UUID.randomUUID();
+      long sku = newSkuWithStock(owner, 3);
+
+      assertThat(call("GET", "/inventory/" + sku, null, null).status()).isEqualTo(401);
+      assertThat(call("GET", "/inventory/" + sku, null, TestTokens.buyer(UUID.randomUUID())).status()).isEqualTo(403);
+      assertThat(call("GET", "/inventory/" + sku, null, TestTokens.seller(UUID.randomUUID())).status()).isEqualTo(403);
+      assertThat(call("GET", "/inventory/" + sku, null, TestTokens.seller(owner)).status()).isEqualTo(200);
+      assertThat(call("GET", "/inventory/" + sku, null, TestTokens.system()).status()).isEqualTo(200);
+
+      assertThat(call("GET", "/inventory", null, TestTokens.seller(owner)).status()).as("a seller cannot list everyone's stock").isEqualTo(403);
+      assertThat(call("GET", "/inventory?skuIds=" + sku, null, TestTokens.seller(owner)).status()).isEqualTo(403);
+      assertThat(call("GET", "/inventory", null, TestTokens.admin()).status()).isEqualTo(200);
+      assertThat(call("GET", "/inventory?skuIds=" + sku, null, TestTokens.system()).status()).isEqualTo(200);
+   }
+
+   @Test
+   void reservationsAreForOtherServicesAndAdminsOnly() throws Exception {
+      long sku = newSkuWithStock(UUID.randomUUID(), 10);
+      String body = reserveBody("chk-" + UUID.randomUUID(), 60, sku, 2);
+
+      assertThat(call("POST", "/inventory/reservations", body, null).status()).isEqualTo(401);
+      assertThat(call("POST", "/inventory/reservations", body, TestTokens.buyer(UUID.randomUUID())).status()).isEqualTo(403);
+      assertThat(call("POST", "/inventory/reservations", body, TestTokens.seller(UUID.randomUUID())).status()).isEqualTo(403);
+      Reply reserved = call("POST", "/inventory/reservations", body, TestTokens.system());
+      assertThat(reserved.status()).isEqualTo(201);
+
+      String id = reserved.body().path("reservations").get(0).path("reservationId").asText();
+      assertThat(call("GET", "/inventory/reservations/" + id, null, TestTokens.seller(UUID.randomUUID())).status()).isEqualTo(403);
+      assertThat(call("GET", "/inventory/reservations/" + id, null, TestTokens.system()).status()).isEqualTo(200);
+      assertThat(call("POST", "/inventory/reservations/expire", null, TestTokens.buyer(UUID.randomUUID())).status()).isEqualTo(403);
    }
 
    // ----------------------------------------------------------- reservations

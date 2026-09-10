@@ -29,6 +29,9 @@ interface SkuRepository extends Repository<Sku, Long> {
    @Query("SELECT s FROM Sku s WHERE s.product.id = :productId AND s.id IN :ids")
    List<Sku> findByProductIdAndIdIn(@Param("productId") UUID productId, @Param("ids") Collection<Long> ids);
 
+   @Query("SELECT s FROM Sku s WHERE s.id IN :ids ORDER BY s.id")
+   List<Sku> findAllByIdIn(@Param("ids") Collection<Long> ids);
+
    @Query("SELECT s FROM Sku s WHERE s.product.id = :productId ORDER BY s.id")
    List<Sku> findByProductId(@Param("productId") UUID productId);
 

@@ -10,5 +10,8 @@ spring:
       ddl-auto: validate
 
 ecom:
+  security:
+    jwt:
+      jwks-uri: ${IDENTITY_JWKS_URI}
   outbox:
     client: rabbit.core

@@ -9,6 +9,8 @@ import com.ecom.inventory.port.in.usecase.item.dto.result.InventoryResult;
 import com.ecom.inventory.port.out.persistence.item.LoadInventoryForUpdatePort;
 import com.ecom.inventory.port.out.persistence.item.SaveInventoryPort;
 import com.ecom.inventory.service.item.mapper.InventoryMapper;
+import com.ecom.security.OwnershipGuard;
+import com.ecom.security.UserRole;
 import com.ecom.shared.messaging.DomainEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class AdjustStockService implements AdjustStockUseCase {
    public InventoryResult execute(AdjustStockCmd cmd) {
       InventoryItem item = loadInventoryForUpdatePort.loadBySkuIdForUpdate(cmd.skuId())
             .orElseThrow(() -> InventoryNotFoundException.of(cmd.skuId()));
+      OwnershipGuard.requireSellerOr(item.getSellerId(), UserRole.ROLE_ADMIN);
 
       int previousTotal = item.getTotalQuantity();
       item.adjustTotalQuantity(cmd.totalQuantity());

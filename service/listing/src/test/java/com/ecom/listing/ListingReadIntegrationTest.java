@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -27,6 +29,11 @@ class ListingReadIntegrationTest {
 
    private static final ObjectMapper JSON = new ObjectMapper();
 
+   @DynamicPropertySource
+   static void jwt(DynamicPropertyRegistry registry) {
+      TestTokens.register(registry);
+   }
+
    @Value("${local.server.port}")
    int port;
 
@@ -38,22 +45,31 @@ class ListingReadIntegrationTest {
       }
    }
 
+   /** Calls as an admin, who may act on anything; use the four-argument form to act as someone else or anonymously. */
    private Reply call(String method, String path, String body) throws Exception {
+      return call(method, path, body, TestTokens.admin());
+   }
+
+   private Reply call(String method, String path, String body, String token) throws Exception {
       HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
          .header("Content-Type", "application/json");
+      if (token != null) {
+         request.header("Authorization", "Bearer " + token);
+      }
       request.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
       HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
       JsonNode json = response.body() == null || response.body().isBlank() ? JSON.createObjectNode() : JSON.readTree(response.body());
       return new Reply(response.statusCode(), json);
    }
 
+   /** Reads are public, so they are made without a token. */
    private Reply get(String path) throws Exception {
-      return call("GET", path, null);
+      return call("GET", path, null, null);
    }
 
    private Reply createProduct(UUID seller, String title) throws Exception {
       return call("POST", "/products",
-         "{\"title\":\"" + title + "\",\"description\":\"A product\",\"defaultPrice\":100.00,\"sellerId\":\"" + seller + "\"}");
+         "{\"title\":\"" + title + "\",\"description\":\"A product\",\"defaultPrice\":100.00}", TestTokens.seller(seller));
    }
 
    private Reply createSku(String productId, String propertiesJson) throws Exception {
@@ -280,5 +296,46 @@ class ListingReadIntegrationTest {
       String productId = createProduct(UUID.randomUUID(), "Laptop Pro").text("id");
 
       assertThat(get("/products/" + productId + "/skus/abc").status()).isEqualTo(400);
+   }
+
+   // ------------------------------------------------------------ lookup by sku id
+
+   @Test
+   void skusCanBeLookedUpByIdAloneAndUnknownOrDeletedOnesAreLeftOut() throws Exception {
+      String first = createProduct(UUID.randomUUID(), "Laptop Pro").text("id");
+      String second = createProduct(UUID.randomUUID(), "Phone Max").text("id");
+      long a = createSku(first, "{\"color\":\"red\"}").body().path("skuId").asLong();
+      long b = createSku(second, "{\"color\":\"blue\"}").body().path("skuId").asLong();
+      long gone = createSku(first, "{\"color\":\"green\"}").body().path("skuId").asLong();
+      call("DELETE", "/products/" + first + "/skus/" + gone + "?version=0", null);
+
+      Reply reply = call("GET", "/skus?skuIds=" + b + "," + a + "," + gone + ",9999999," + a, null, TestTokens.system());
+
+      assertThat(reply.status()).isEqualTo(200);
+      assertThat(reply.body()).hasSize(2);
+      assertThat(reply.body().get(0).path("skuId").asLong()).isEqualTo(Math.min(a, b));
+      assertThat(reply.body().get(0).path("price").decimalValue()).isEqualByComparingTo("25.50");
+      assertThat(reply.body().get(0).path("sellerId").asText()).isNotBlank();
+      assertThat(reply.body().get(0).path("productId").asText()).isIn(first, second);
+   }
+
+   @Test
+   void theSkuLookupIsInternal() throws Exception {
+      assertThat(get("/skus?skuIds=1").status()).as("anonymous").isEqualTo(401);
+      assertThat(call("GET", "/skus?skuIds=1", null, TestTokens.buyer()).status()).as("buyer").isEqualTo(403);
+      assertThat(call("GET", "/skus?skuIds=1", null, TestTokens.seller(UUID.randomUUID())).status()).as("seller").isEqualTo(403);
+      assertThat(call("GET", "/skus?skuIds=1", null, TestTokens.system()).status()).isEqualTo(200);
+      assertThat(call("GET", "/skus?skuIds=1", null, TestTokens.admin()).status()).isEqualTo(200);
+   }
+
+   @Test
+   void theSkuLookupRejectsMissingEmptyOversizedAndNonNumericIds() throws Exception {
+      assertThat(call("GET", "/skus", null, TestTokens.system()).status()).isEqualTo(400);
+      assertThat(call("GET", "/skus?skuIds=", null, TestTokens.system()).status()).isEqualTo(400);
+      assertThat(call("GET", "/skus?skuIds=1,two", null, TestTokens.system()).status()).isEqualTo(400);
+      String hundred = java.util.stream.LongStream.rangeClosed(8_000_000, 8_000_099)
+         .mapToObj(String::valueOf).collect(java.util.stream.Collectors.joining(","));
+      assertThat(call("GET", "/skus?skuIds=" + hundred, null, TestTokens.system()).status()).isEqualTo(200);
+      assertThat(call("GET", "/skus?skuIds=" + hundred + ",8000100", null, TestTokens.system()).status()).isEqualTo(400);
    }
 }

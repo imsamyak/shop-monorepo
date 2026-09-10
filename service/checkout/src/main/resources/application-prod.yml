@@ -10,11 +10,18 @@ spring:
       ddl-auto: validate
 
 services:
+  identity:
+    base-url: ${IDENTITY_SERVICE_URL}
+    client-id: ${CHECKOUT_CLIENT_ID:checkout-service}
+    client-secret: ${CHECKOUT_CLIENT_SECRET}
   inventory:
     base-url: ${INVENTORY_SERVICE_URL}
-  product-query:
-    base-url: ${PRODUCT_QUERY_SERVICE_URL}
+  listing:
+    base-url: ${LISTING_SERVICE_URL}
 
 ecom:
+  security:
+    jwt:
+      jwks-uri: ${IDENTITY_JWKS_URI}
   outbox:
     client: rabbit.core

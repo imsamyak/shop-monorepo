@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -30,6 +32,11 @@ class InventoryReadsIntegrationTest {
    private static final ObjectMapper JSON = new ObjectMapper();
    private static final AtomicLong SKU_IDS = new AtomicLong(50_000);
 
+   @DynamicPropertySource
+   static void jwt(DynamicPropertyRegistry registry) {
+      TestTokens.register(registry);
+   }
+
    @Value("${local.server.port}")
    int port;
 
@@ -41,9 +48,17 @@ class InventoryReadsIntegrationTest {
    record Reply(int status, JsonNode body) {
    }
 
+   /** Calls as an admin, who may do everything; use the four-argument form to act as someone else or anonymously. */
    private Reply call(String method, String path, String body) throws Exception {
+      return call(method, path, body, TestTokens.admin());
+   }
+
+   private Reply call(String method, String path, String body, String token) throws Exception {
       HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
          .header("Content-Type", "application/json");
+      if (token != null) {
+         request.header("Authorization", "Bearer " + token);
+      }
       request.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
       HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
       JsonNode json = response.body() == null || response.body().isBlank() ? JSON.createObjectNode() : JSON.readTree(response.body());
@@ -256,6 +271,6 @@ class InventoryReadsIntegrationTest {
       // not the sku lookup (which would answer 400 for a non-numeric sku id too, so check the body)
       Reply reply = get("/inventory/reservations");
       assertThat(reply.status()).isEqualTo(400);
-      assertThat(reply.body().path("detail").asText()).containsIgnoringCase("checkoutId");
+      assertThat(reply.body().path("invalidFields").has("checkoutId")).isTrue();
    }
 }

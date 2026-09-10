@@ -9,15 +9,16 @@ import com.ecom.inventory.port.in.usecase.item.ListInventoryUseCase;
 import com.ecom.inventory.port.in.usecase.item.dto.query.GetInventoriesQuery;
 import com.ecom.inventory.port.in.usecase.item.dto.query.GetInventoryQuery;
 import com.ecom.inventory.port.in.usecase.item.dto.query.ListInventoryQuery;
+import com.ecom.security.RequireRole;
+import com.ecom.security.UserRole;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 
 /**
  * Stock reads. The reservation reads live under {@code /inventory/reservations}; Spring prefers that literal path over
@@ -25,6 +26,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/inventory")
+@RequireRole({UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN, UserRole.ROLE_SYSTEM})
 @RequiredArgsConstructor
 public class InventoryController {
 
@@ -37,16 +39,16 @@ public class InventoryController {
       return ResponseEntity.ok(InventoryResponse.from(getInventoryUseCase.execute(new GetInventoryQuery(skuId))));
    }
 
-   /** With {@code skuIds} this is a bulk lookup, without it the paged listing sorted by sku id. */
+   /**
+    * With {@code skuIds} this is a bulk lookup, without it the paged listing sorted by sku id. The query string is
+    * bound straight into {@link ListInventoryQuery}. Only admins and other services may look at stock in bulk.
+    */
    @GetMapping
-   public ResponseEntity<?> list(
-         @RequestParam(required = false) List<Long> skuIds,
-         @RequestParam(defaultValue = "0") int page,
-         @RequestParam(defaultValue = "20") int size
-   ) {
-      if (skuIds != null) {
-         return ResponseEntity.ok(InventoriesResponse.from(getInventoriesUseCase.execute(new GetInventoriesQuery(skuIds))));
+   @RequireRole({UserRole.ROLE_ADMIN, UserRole.ROLE_SYSTEM})
+   public ResponseEntity<?> list(@Valid ListInventoryQuery query) {
+      if (query.isLookup()) {
+         return ResponseEntity.ok(InventoriesResponse.from(getInventoriesUseCase.execute(new GetInventoriesQuery(query.skuIds()))));
       }
-      return ResponseEntity.ok(InventoryPageResponse.from(listInventoryUseCase.execute(new ListInventoryQuery(page, size))));
+      return ResponseEntity.ok(InventoryPageResponse.from(listInventoryUseCase.execute(query)));
    }
 }

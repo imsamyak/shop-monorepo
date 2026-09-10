@@ -12,6 +12,8 @@ import com.ecom.checkout.port.in.usecase.record.RecordCheckouts;
 import com.ecom.checkout.port.out.client.inventory.ReleaseStockPort;
 import com.ecom.checkout.port.out.persistence.LoadCheckoutPort;
 import com.ecom.checkout.service.mapper.CheckoutMapper;
+import com.ecom.security.OwnershipGuard;
+import com.ecom.security.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +39,7 @@ public class CancelCheckoutService implements CancelCheckoutUseCase {
    public CheckoutResult execute(CancelCheckoutCmd cmd) {
       Checkout checkout = loadCheckoutPort.loadById(cmd.checkoutId())
             .orElseThrow(() -> CheckoutNotFoundException.of(cmd.checkoutId()));
+      OwnershipGuard.requireUserOr(checkout.getCustomerId(), UserRole.ROLE_ADMIN);
 
       if (checkout.getStatus() == CheckoutStatus.CANCELLED || checkout.getStatus() == CheckoutStatus.EXPIRED) {
          return checkoutMapper.toResult(checkout);

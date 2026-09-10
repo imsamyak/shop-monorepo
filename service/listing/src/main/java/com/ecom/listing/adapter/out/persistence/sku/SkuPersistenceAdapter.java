@@ -41,6 +41,15 @@ public class SkuPersistenceAdapter
 
    @Override
    @Transactional(readOnly = true)
+   public List<Sku> loadAll(Collection<Long> skuIds) {
+      if (skuIds == null || skuIds.isEmpty()) {
+         return List.of();
+      }
+      return repository.findAllByIdIn(skuIds);
+   }
+
+   @Override
+   @Transactional(readOnly = true)
    public List<Sku> loadByProduct(UUID productId) {
       return repository.findByProductId(productId);
    }

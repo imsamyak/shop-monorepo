@@ -13,6 +13,8 @@ import com.ecom.listing.port.in.usecase.sku.dto.query.GetSkuQuery;
 import com.ecom.listing.port.in.usecase.sku.dto.query.ListSkusQuery;
 import com.ecom.listing.port.in.usecase.sku.dto.result.SkuListResult;
 import com.ecom.listing.port.in.usecase.sku.dto.result.SkuResult;
+import com.ecom.security.RequireRole;
+import com.ecom.security.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +48,7 @@ public class SkuController {
    }
 
    @PostMapping
+   @RequireRole({UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
    public ResponseEntity<SkuResponse> createSku(
          @PathVariable UUID productId,
          @Valid @RequestBody CreateSkuRequest request
@@ -57,6 +60,7 @@ public class SkuController {
    }
 
    @PutMapping("/{skuId}")
+   @RequireRole({UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
    public ResponseEntity<SkuResponse> updateSku(
          @PathVariable UUID productId,
          @PathVariable Long skuId,
@@ -67,6 +71,7 @@ public class SkuController {
    }
 
    @DeleteMapping("/{skuId}")
+   @RequireRole({UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
    public ResponseEntity<SkuResponse> deleteSku(
          @PathVariable UUID productId,
          @PathVariable Long skuId,

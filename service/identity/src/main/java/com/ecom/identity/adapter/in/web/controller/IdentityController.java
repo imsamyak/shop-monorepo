@@ -15,6 +15,7 @@ import com.ecom.identity.port.in.usecase.GetCurrentUserUseCase;
 import com.ecom.identity.port.in.usecase.IssueServiceTokenUseCase;
 import com.ecom.identity.port.in.usecase.LoginUseCase;
 import com.ecom.identity.port.in.usecase.RegisterBuyerUseCase;
+import com.ecom.identity.port.in.usecase.RegisterSellerUseCase;
 import com.ecom.identity.port.in.usecase.ResetPasswordUseCase;
 import com.ecom.identity.port.in.usecase.dto.query.GetCurrentUserQuery;
 import com.ecom.security.Caller;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IdentityController {
 
    private final RegisterBuyerUseCase registerBuyerUseCase;
+   private final RegisterSellerUseCase registerSellerUseCase;
    private final LoginUseCase loginUseCase;
    private final CreateUserUseCase createUserUseCase;
    private final GetCurrentUserUseCase getCurrentUserUseCase;
@@ -50,6 +52,13 @@ public class IdentityController {
    @ResponseStatus(HttpStatus.CREATED)
    public SessionResponse register(@Valid @RequestBody RegisterRequest request) {
       return SessionResponse.from(registerBuyerUseCase.execute(request.toCommand()));
+   }
+
+   /** Anyone can sign up as a seller; the seller id in the token is created with the account. */
+   @PostMapping("/auth/register/seller")
+   @ResponseStatus(HttpStatus.CREATED)
+   public SessionResponse registerSeller(@Valid @RequestBody RegisterRequest request) {
+      return SessionResponse.from(registerSellerUseCase.execute(request.toSellerCommand()));
    }
 
    @PostMapping("/auth/login")

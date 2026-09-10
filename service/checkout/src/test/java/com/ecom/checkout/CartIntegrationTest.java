@@ -42,8 +42,10 @@ class CartIntegrationTest {
    private static HttpServer startStub() {
       try {
          HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-         server.createContext("/products/items/lookup", CartIntegrationTest::catalog);
+         server.createContext("/skus", CartIntegrationTest::catalog);
          server.createContext("/inventory/reservations", CartIntegrationTest::inventory);
+         server.createContext("/auth/token", exchange -> respond(exchange, 200,
+            "{\"accessToken\":\"stub-service-token\",\"tokenType\":\"Bearer\",\"expiresIn\":300}"));
          server.start();
          return server;
       } catch (IOException e) {
@@ -88,9 +90,11 @@ class CartIntegrationTest {
 
    @DynamicPropertySource
    static void stubUrls(DynamicPropertyRegistry registry) {
+      TestTokens.register(registry);
       String base = "http://localhost:" + STUB.getAddress().getPort();
+      registry.add("services.identity.base-url", () -> base);
       registry.add("services.inventory.base-url", () -> base);
-      registry.add("services.product-query.base-url", () -> base);
+      registry.add("services.listing.base-url", () -> base);
    }
 
    @AfterAll
@@ -108,9 +112,17 @@ class CartIntegrationTest {
    record Reply(int status, JsonNode body) {
    }
 
+   /** Calls as an admin, who may act for any customer; use the four-argument form to act as someone else or anonymously. */
    private Reply call(String method, String path, String body) throws Exception {
+      return call(method, path, body, TestTokens.admin());
+   }
+
+   private Reply call(String method, String path, String body, String token) throws Exception {
       HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
          .header("Content-Type", "application/json");
+      if (token != null) {
+         request.header("Authorization", "Bearer " + token);
+      }
       request.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
       HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
       JsonNode json = response.body() == null || response.body().isBlank() ? JSON.createObjectNode() : JSON.readTree(response.body());
@@ -298,10 +310,31 @@ class CartIntegrationTest {
       assertThat(lines(reply)).containsExactly("5:4");
    }
 
+   // ---- who may do what ----------------------------------------------------------------------------------------
+
+   @Test
+   void aCartBelongsToItsCustomerAndOnlyAnAdminMayActForAnother() throws Exception {
+      UUID customer = UUID.randomUUID();
+      String path = "/carts/" + customer;
+      String body = "{\"skuId\":5,\"quantity\":2}";
+      String other = TestTokens.buyer(UUID.randomUUID());
+
+      assertThat(call("GET", path, null, null).status()).as("anonymous").isEqualTo(401);
+      assertThat(call("GET", path, null, other).status()).as("someone else's cart").isEqualTo(403);
+      assertThat(call("POST", path + "/items", body, other).status()).isEqualTo(403);
+      assertThat(call("DELETE", path, null, other).status()).isEqualTo(403);
+      assertThat(call("GET", path, null, TestTokens.system()).status()).as("a service is not a customer").isEqualTo(403);
+
+      assertThat(call("POST", path + "/items", body, TestTokens.buyer(customer)).status()).as("the owner").isEqualTo(200);
+      assertThat(call("GET", path, null, TestTokens.buyer(customer)).status()).isEqualTo(200);
+      assertThat(call("GET", path, null, TestTokens.admin()).status()).as("admin").isEqualTo(200);
+      assertThat(lines(call("GET", path, null, TestTokens.admin()))).containsExactly("5:2");
+   }
+
    // ---- checkout -----------------------------------------------------------------------------------------------
 
    private Reply draftFromCart(UUID customer, String itemsField) throws Exception {
-      return call("POST", "/checkouts", "{\"customerId\":\"" + customer + "\"" + itemsField + "}");
+      return call("POST", "/checkouts", "{" + itemsField.replaceFirst("^,", "") + "}", TestTokens.buyer(customer));
    }
 
    @Test

@@ -10,6 +10,8 @@ import com.ecom.listing.port.in.usecase.sku.dto.result.SkuResult;
 import com.ecom.listing.port.out.persistence.sku.LoadSkuPort;
 import com.ecom.listing.port.out.persistence.sku.UpdateSkuPort;
 import com.ecom.listing.service.sku.mapper.SkuMapper;
+import com.ecom.security.OwnershipGuard;
+import com.ecom.security.UserRole;
 import com.ecom.shared.messaging.DomainEvent;
 import com.ecom.shared.validator.EntityVersionValidator;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class UpdateSkuService implements UpdateSkuUseCase {
       Sku sku = updateSkuPort.loadForUpdate(cmd.productId(), cmd.skuId())
           .orElseThrow(() -> SkuNotFoundException.of(cmd.productId(), cmd.skuId()));
 
+      OwnershipGuard.requireSellerOr(sku.getSellerId(), UserRole.ROLE_ADMIN);
       versionValidator.validate(sku, cmd.version());
 
       skuMapper.updateEntity(sku, cmd);

@@ -11,13 +11,11 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * A draft is described by the customer and the SKUs and quantities only. Prices and sellers are looked up
- * server-side, so the client cannot supply (or forge) them; nothing checks who is calling. Leaving the items out (or
- * empty) drafts the customer's current cart.
+ * A draft is described by the SKUs and quantities only. The customer is the caller in the access token, and prices and
+ * sellers are looked up server-side, so the client cannot supply (or forge) them. Leaving the items out (or empty)
+ * drafts the customer's current cart.
  */
 public record DraftCheckoutRequest(
-      @NotNull(message = "customerId is required")
-      UUID customerId,
       @Size(max = 50, message = "A checkout can contain at most 50 different items")
       List<@NotNull @Valid ItemRequest> items,
 
@@ -25,7 +23,7 @@ public record DraftCheckoutRequest(
       @Max(value = 3600, message = "ttlSeconds cannot exceed one hour")
       Long ttlSeconds
 ) {
-   public DraftCheckoutCmd toCommand() {
+   public DraftCheckoutCmd toCommand(UUID customerId) {
       return new DraftCheckoutCmd(
             customerId,
             items == null ? List.of() : items.stream().map(i -> new DraftCheckoutCmd.ItemCmd(i.skuId(), i.quantity())).toList(),

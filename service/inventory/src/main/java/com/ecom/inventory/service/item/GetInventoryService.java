@@ -1,6 +1,9 @@
 package com.ecom.inventory.service.item;
 
+import com.ecom.inventory.domain.entity.InventoryItem;
 import com.ecom.inventory.domain.exception.item.InventoryNotFoundException;
+import com.ecom.security.OwnershipGuard;
+import com.ecom.security.UserRole;
 import com.ecom.inventory.port.in.usecase.item.GetInventoryUseCase;
 import com.ecom.inventory.port.in.usecase.item.dto.query.GetInventoryQuery;
 import com.ecom.inventory.port.in.usecase.item.dto.result.InventoryResult;
@@ -20,8 +23,9 @@ public class GetInventoryService implements GetInventoryUseCase {
 
    @Override
    public InventoryResult execute(GetInventoryQuery query) {
-      return loadInventoryPort.loadBySkuId(query.skuId())
-            .map(item -> inventoryMapper.toResult(item, 0))
+      InventoryItem item = loadInventoryPort.loadBySkuId(query.skuId())
             .orElseThrow(() -> InventoryNotFoundException.of(query.skuId()));
+      OwnershipGuard.requireSellerOr(item.getSellerId(), UserRole.ROLE_ADMIN, UserRole.ROLE_SYSTEM);
+      return inventoryMapper.toResult(item, 0);
    }
 }

@@ -45,6 +45,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class InventoryQueryServicesTest {
 
+   @org.junit.jupiter.api.BeforeEach
+   void signIn() {
+      com.ecom.security.SecurityContext.setPrincipal(
+         com.ecom.security.UserPrincipal.of("u-1", "admin@example.com", com.ecom.security.UserRole.ROLE_ADMIN, null));
+   }
+
+   @org.junit.jupiter.api.AfterEach
+   void signOut() {
+      com.ecom.security.SecurityContext.clear();
+   }
+
+
    private final InventoryMapper inventoryMapper = new InventoryMapper();
    private final ReservationMapper reservationMapper = new ReservationMapper();
 
@@ -101,7 +113,7 @@ class InventoryQueryServicesTest {
    void listInventoryMapsThePageAndPointsToTheNextOne() {
       when(loadInventoryPort.loadPage(1, 2)).thenReturn(new InventoryPage(List.of(item(3, 1), item(4, 2)), 7, 4));
 
-      InventoryPageResult result = new ListInventoryService(loadInventoryPort, inventoryMapper).execute(new ListInventoryQuery(1, 2));
+      InventoryPageResult result = new ListInventoryService(loadInventoryPort, inventoryMapper).execute(new ListInventoryQuery(null, 1, 2));
 
       assertThat(result.items()).extracting(InventoryResult::skuId).containsExactly(3L, 4L);
       assertThat(result.page()).isEqualTo(1);
@@ -115,7 +127,7 @@ class InventoryQueryServicesTest {
    void theLastPageHasNoNextCursor() {
       when(loadInventoryPort.loadPage(3, 2)).thenReturn(new InventoryPage(List.of(item(7, 1)), 7, 4));
 
-      assertThat(new ListInventoryService(loadInventoryPort, inventoryMapper).execute(new ListInventoryQuery(3, 2)).cursor()).isNull();
+      assertThat(new ListInventoryService(loadInventoryPort, inventoryMapper).execute(new ListInventoryQuery(null, 3, 2)).cursor()).isNull();
    }
 
    // ------------------------------------------------------------------ reservations

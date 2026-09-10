@@ -164,6 +164,24 @@ class IdentityIntegrationTest {
    }
 
    @Test
+   void anyoneCanSignUpAsASellerAndGetsASellerIdInTheirToken() throws Exception {
+      String email = uniqueEmail();
+
+      Reply reply = call("POST", "/auth/register/seller", null, credentials(email, PASSWORD));
+
+      assertThat(reply.status()).isEqualTo(201);
+      assertThat(reply.body().path("user").path("role").asText()).isEqualTo("ROLE_SELLER");
+      String sellerId = reply.body().path("user").path("sellerId").asText();
+      assertThat(sellerId).isNotBlank();
+      Reply me = call("GET", "/auth/me", reply.body().path("accessToken").asText(), null);
+      assertThat(me.status()).isEqualTo(200);
+      assertThat(me.body().path("sellerId").asText()).isEqualTo(sellerId);
+      assertThat(call("POST", "/auth/login", null, credentials(email, PASSWORD)).status()).isEqualTo(200);
+      assertThat(call("POST", "/auth/register/seller", null, credentials(email, PASSWORD)).status()).as("taken").isEqualTo(409);
+      assertThat(call("POST", "/auth/register/seller", null, credentials(uniqueEmail(), "short")).status()).isEqualTo(400);
+   }
+
+   @Test
    void accountLocksAfterRepeatedFailures() throws Exception {
       String email = uniqueEmail();
       register(email);

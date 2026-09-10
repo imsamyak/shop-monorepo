@@ -23,9 +23,18 @@ checkout:
     interval-ms: 60000
 
 services:
+  identity:
+    connect-timeout-ms: 2000
+    read-timeout-ms: 5000
   inventory:
     connect-timeout-ms: 2000
     read-timeout-ms: 5000
-  product-query:
+  listing:
     connect-timeout-ms: 2000
     read-timeout-ms: 5000
+
+ecom:
+  security:
+    jwt:
+      # Tokens are signed by the identity service; this service only verifies them.
+      issuer: ${JWT_ISSUER:ecom-identity}

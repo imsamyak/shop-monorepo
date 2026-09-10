@@ -22,6 +22,11 @@
 
         <dependency>
             <groupId>com.ecom</groupId>
+            <artifactId>security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ecom</groupId>
             <artifactId>inbox</artifactId>
         </dependency>
 

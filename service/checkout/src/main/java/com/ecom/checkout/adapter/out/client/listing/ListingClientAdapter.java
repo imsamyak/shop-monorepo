@@ -1,11 +1,13 @@
-package com.ecom.checkout.adapter.out.client.catalog;
+package com.ecom.checkout.adapter.out.client.listing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ecom.checkout.adapter.out.client.ClientSupport;
+import com.ecom.checkout.adapter.out.client.identity.ServiceTokenProvider;
 import com.ecom.checkout.domain.exception.StockOperationRejectedException;
 import com.ecom.checkout.port.out.client.catalog.LoadSkuPricePort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
@@ -16,20 +18,24 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Reads SKU prices and sellers from the product catalog read model (product-query).
+ * Reads SKU prices and sellers from the listing service, the source of truth, so a customer is always charged the
+ * current price.
  */
 @Component
-public class ProductQueryClientAdapter implements LoadSkuPricePort {
+public class ListingClientAdapter implements LoadSkuPricePort {
 
-   private static final String DEPENDENCY = "product-query-service";
+   private static final String DEPENDENCY = "listing-service";
 
    private final RestClient restClient;
+   private final ServiceTokenProvider tokens;
 
-   public ProductQueryClientAdapter(
-         @Value("${services.product-query.base-url}") String baseUrl,
-         @Value("${services.product-query.connect-timeout-ms:2000}") int connectTimeoutMs,
-         @Value("${services.product-query.read-timeout-ms:5000}") int readTimeoutMs) {
+   public ListingClientAdapter(
+         ServiceTokenProvider tokens,
+         @Value("${services.listing.base-url}") String baseUrl,
+         @Value("${services.listing.connect-timeout-ms:2000}") int connectTimeoutMs,
+         @Value("${services.listing.read-timeout-ms:5000}") int readTimeoutMs) {
       this.restClient = ClientSupport.restClient(baseUrl, connectTimeoutMs, readTimeoutMs);
+      this.tokens = tokens;
    }
 
    @Override
@@ -38,7 +44,8 @@ public class ProductQueryClientAdapter implements LoadSkuPricePort {
 
       String body = ClientSupport.call(DEPENDENCY,
             () -> restClient.get()
-                  .uri(uri -> uri.path("/products/items/lookup").queryParam("skuIds", ids).build())
+                  .uri(uri -> uri.path("/skus").queryParam("skuIds", ids).build())
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.token())
                   .retrieve()
                   .body(String.class),
             (status, reason) -> StockOperationRejectedException.of("look up prices", reason));

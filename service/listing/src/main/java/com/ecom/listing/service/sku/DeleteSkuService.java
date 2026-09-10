@@ -8,6 +8,8 @@ import com.ecom.listing.port.in.usecase.sku.dto.command.DeleteSkuCmd;
 import com.ecom.listing.port.in.usecase.sku.dto.result.SkuResult;
 import com.ecom.listing.port.out.persistence.sku.DeleteSkuPort;
 import com.ecom.listing.service.sku.mapper.SkuMapper;
+import com.ecom.security.OwnershipGuard;
+import com.ecom.security.UserRole;
 import com.ecom.shared.messaging.DomainEvent;
 import com.ecom.shared.validator.EntityVersionValidator;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class DeleteSkuService implements DeleteSkuUseCase {
       Sku sku = deleteSkuPort.loadForUpdate(cmd.productId(), cmd.skuId())
           .orElseThrow(() -> SkuNotFoundException.of(cmd.productId(), cmd.skuId()));
 
+      OwnershipGuard.requireSellerOr(sku.getSellerId(), UserRole.ROLE_ADMIN);
       versionValidator.validate(sku, cmd.version());
 
       sku.softDelete();

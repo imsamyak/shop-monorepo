@@ -14,6 +14,9 @@ public interface LoadSkuPort {
 
    List<Sku> load(UUID productId, Collection<Long> skuIds);
 
+   /** The live SKUs among these ids, whatever product they belong to; unknown or deleted ids are left out. */
+   List<Sku> loadAll(Collection<Long> skuIds);
+
    /** Every live SKU of the product. */
    List<Sku> loadByProduct(UUID productId);
 

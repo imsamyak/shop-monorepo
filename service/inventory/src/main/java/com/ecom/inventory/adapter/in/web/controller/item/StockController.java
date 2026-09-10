@@ -9,6 +9,8 @@ import com.ecom.inventory.port.in.usecase.item.AdjustStockUseCase;
 import com.ecom.inventory.port.in.usecase.item.RemoveStockUseCase;
 import com.ecom.inventory.port.in.usecase.item.dto.result.InventoryResult;
 import jakarta.validation.Valid;
+import com.ecom.security.RequireRole;
+import com.ecom.security.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/inventory/{skuId}/stock")
+@RequireRole({UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
 @RequiredArgsConstructor
 public class StockController {
 

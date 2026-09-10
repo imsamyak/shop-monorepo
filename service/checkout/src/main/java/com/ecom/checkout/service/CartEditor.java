@@ -5,6 +5,8 @@ import com.ecom.checkout.port.in.usecase.dto.result.CartResult;
 import com.ecom.checkout.port.out.persistence.LoadCartPort;
 import com.ecom.checkout.port.out.persistence.SaveCartPort;
 import com.ecom.checkout.service.mapper.CartMapper;
+import com.ecom.security.OwnershipGuard;
+import com.ecom.security.UserRole;
 import com.ecom.shared.validator.EntityVersionValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -33,6 +35,7 @@ public class CartEditor {
     */
    @Transactional
    public CartResult edit(UUID customerId, Long expectedVersion, Predicate<Cart> change) {
+      OwnershipGuard.requireUserOr(customerId, UserRole.ROLE_ADMIN);
       Optional<Cart> stored = loadCartPort.loadByCustomerId(customerId);
       Cart cart = stored.orElseGet(() -> Cart.empty(customerId));
       if (expectedVersion != null) {

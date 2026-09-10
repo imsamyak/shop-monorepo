@@ -10,6 +10,9 @@ import com.ecom.checkout.port.in.usecase.dto.command.CancelCheckoutCmd;
 import com.ecom.checkout.port.in.usecase.dto.command.CommitCheckoutCmd;
 import com.ecom.checkout.port.in.usecase.dto.command.GetCheckoutQuery;
 import com.ecom.checkout.port.in.usecase.dto.result.CheckoutResult;
+import com.ecom.security.Caller;
+import com.ecom.security.RequireRole;
+import com.ecom.security.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +31,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/checkouts")
+@RequireRole({UserRole.ROLE_BUYER, UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
 @RequiredArgsConstructor
 public class CheckoutController {
 
@@ -38,7 +42,7 @@ public class CheckoutController {
 
    @PostMapping
    public ResponseEntity<CheckoutResponse> draft(@Valid @RequestBody DraftCheckoutRequest request) {
-      CheckoutResult result = draftCheckoutUseCase.execute(request.toCommand());
+      CheckoutResult result = draftCheckoutUseCase.execute(request.toCommand(Caller.userId()));
       CheckoutResponse response = CheckoutResponse.from(result);
       return ResponseEntity.created(
           URI.create("/checkouts/" + response.checkoutId())).body(response);

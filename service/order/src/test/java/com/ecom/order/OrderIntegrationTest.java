@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,6 +30,11 @@ class OrderIntegrationTest {
 
    private static final ObjectMapper JSON = new ObjectMapper();
 
+   @DynamicPropertySource
+   static void jwt(DynamicPropertyRegistry registry) {
+      TestTokens.register(registry);
+   }
+
    @Value("${local.server.port}")
    int port;
 
@@ -46,10 +53,18 @@ class OrderIntegrationTest {
       return call("GET", path);
    }
 
+   /** Calls as an admin, who may see every order; use the three-argument form to act as someone else or anonymously. */
    private Reply call(String method, String path) throws Exception {
-      HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
-         .method(method, HttpRequest.BodyPublishers.noBody()).build();
-      HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+      return call(method, path, TestTokens.admin());
+   }
+
+   private Reply call(String method, String path, String token) throws Exception {
+      HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
+         .method(method, HttpRequest.BodyPublishers.noBody());
+      if (token != null) {
+         request.header("Authorization", "Bearer " + token);
+      }
+      HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
       JsonNode json = response.body() == null || response.body().isBlank() ? JSON.createObjectNode() : JSON.readTree(response.body());
       return new Reply(response.statusCode(), json);
    }
@@ -71,6 +86,33 @@ class OrderIntegrationTest {
    private void cancelled(String checkoutId, long version) {
       inboxListener.listen("msg-" + UUID.randomUUID(), "checkout.cancelled",
          "{\"checkoutId\":\"" + checkoutId + "\",\"reason\":\"EXPIRED\",\"version\":" + version + "}");
+   }
+
+   // ------------------------------------------------------------ who may do what
+
+   @Test
+   void aCustomerSeesOnlyTheirOwnOrders() throws Exception {
+      UUID customer = UUID.randomUUID();
+      String mine = UUID.randomUUID().toString();
+      String theirs = UUID.randomUUID().toString();
+      drafted(mine, customer.toString(), 0, 1);
+      drafted(theirs, UUID.randomUUID().toString(), 0, 1);
+      String token = TestTokens.buyer(customer);
+
+      assertThat(call("GET", "/orders/" + mine, null).status()).as("anonymous").isEqualTo(401);
+      assertThat(call("GET", "/orders", null).status()).isEqualTo(401);
+      assertThat(call("GET", "/orders/" + mine, TestTokens.system()).status()).as("a service is not a customer").isEqualTo(403);
+      assertThat(call("GET", "/orders/" + mine, TestTokens.buyer(UUID.randomUUID())).status()).as("someone else").isEqualTo(403);
+      assertThat(call("GET", "/orders/" + mine, token).status()).isEqualTo(200);
+      assertThat(call("GET", "/orders/" + theirs, token).status()).isEqualTo(403);
+      assertThat(call("GET", "/orders/" + theirs).status()).as("admin").isEqualTo(200);
+
+      Reply list = call("GET", "/orders", token);
+      assertThat(list.status()).isEqualTo(200);
+      assertThat(list.body().path("totalElements").asInt()).as("no customerId means the caller's").isEqualTo(1);
+      assertThat(list.body().path("items").get(0).path("orderId").asText()).isEqualTo(mine);
+      assertThat(call("GET", "/orders?customerId=" + customer, token).body().path("totalElements").asInt()).isEqualTo(1);
+      assertThat(call("GET", "/orders?customerId=" + UUID.randomUUID(), token).status()).as("another customer's list").isEqualTo(403);
    }
 
    // ------------------------------------------------------------------ events

@@ -2,11 +2,13 @@ package com.ecom.checkout.adapter.out.client.inventory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ecom.checkout.adapter.out.client.ClientSupport;
+import com.ecom.checkout.adapter.out.client.identity.ServiceTokenProvider;
 import com.ecom.checkout.domain.exception.StockOperationRejectedException;
 import com.ecom.checkout.port.out.client.inventory.CommitStockPort;
 import com.ecom.checkout.port.out.client.inventory.ReleaseStockPort;
 import com.ecom.checkout.port.out.client.inventory.ReserveStockPort;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -18,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Calls inventory over HTTP.
+ * Calls inventory over HTTP, signed in as this service (inventory only accepts reservation calls from services).
  * All calls have timeouts and map failures: rejections by inventory become {@link StockOperationRejectedException}
  * (422), everything else a 503.
  */
@@ -28,12 +30,15 @@ public class InventoryClientAdapter implements ReserveStockPort, CommitStockPort
    private static final String DEPENDENCY = "inventory-service";
 
    private final RestClient restClient;
+   private final ServiceTokenProvider tokens;
 
    public InventoryClientAdapter(
+         ServiceTokenProvider tokens,
          @Value("${services.inventory.base-url}") String baseUrl,
          @Value("${services.inventory.connect-timeout-ms:2000}") int connectTimeoutMs,
          @Value("${services.inventory.read-timeout-ms:5000}") int readTimeoutMs) {
       this.restClient = ClientSupport.restClient(baseUrl, connectTimeoutMs, readTimeoutMs);
+      this.tokens = tokens;
    }
 
    @Override
@@ -65,6 +70,7 @@ public class InventoryClientAdapter implements ReserveStockPort, CommitStockPort
       return ClientSupport.call(DEPENDENCY,
             () -> restClient.post()
                   .uri(path)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.token())
                   .contentType(MediaType.APPLICATION_JSON)
                   .body(request)
                   .retrieve()

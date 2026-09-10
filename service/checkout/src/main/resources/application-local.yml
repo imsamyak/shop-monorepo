@@ -9,12 +9,20 @@ spring:
       ddl-auto: update
 
 services:
+  identity:
+    base-url: ${IDENTITY_SERVICE_URL:http://localhost:8086}
+    # The client this service logs in as when it calls inventory; identity knows the same secret (identity.service-clients).
+    client-id: checkout-service
+    client-secret: ${CHECKOUT_CLIENT_SECRET:dev-checkout-client-secret}
   inventory:
     base-url: ${INVENTORY_SERVICE_URL:http://localhost:8083}
-  product-query:
-    base-url: ${PRODUCT_QUERY_SERVICE_URL:http://localhost:8082}
+  listing:
+    base-url: ${LISTING_SERVICE_URL:http://localhost:8081}
 
 ecom:
+  security:
+    jwt:
+      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/.well-known/jwks.json}
   outbox:
     # Publish the checkout events through the RabbitMQ client the profile calls "core"; infra says where it is.
     client: rabbit.core

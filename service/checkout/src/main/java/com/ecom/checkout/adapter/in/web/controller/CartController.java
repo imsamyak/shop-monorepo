@@ -11,6 +11,8 @@ import com.ecom.checkout.port.in.usecase.SetCartItemUseCase;
 import com.ecom.checkout.port.in.usecase.dto.command.ClearCartCmd;
 import com.ecom.checkout.port.in.usecase.dto.command.GetCartQuery;
 import com.ecom.checkout.port.in.usecase.dto.command.RemoveCartItemCmd;
+import com.ecom.security.RequireRole;
+import com.ecom.security.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/carts/{customerId}")
+@RequireRole({UserRole.ROLE_BUYER, UserRole.ROLE_SELLER, UserRole.ROLE_ADMIN})
 @RequiredArgsConstructor
 public class CartController {
 

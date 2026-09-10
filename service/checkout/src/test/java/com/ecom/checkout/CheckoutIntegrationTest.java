@@ -59,8 +59,10 @@ class CheckoutIntegrationTest {
    private static HttpServer startStub() {
       try {
          HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-         server.createContext("/products/items/lookup", CheckoutIntegrationTest::catalog);
+         server.createContext("/skus", CheckoutIntegrationTest::catalog);
          server.createContext("/inventory/reservations", CheckoutIntegrationTest::inventory);
+         server.createContext("/auth/token", exchange -> respond(exchange, 200,
+            "{\"accessToken\":\"stub-service-token\",\"tokenType\":\"Bearer\",\"expiresIn\":300}"));
          server.start();
          return server;
       } catch (IOException e) {
@@ -127,8 +129,10 @@ class CheckoutIntegrationTest {
    @DynamicPropertySource
    static void stubUrls(DynamicPropertyRegistry registry) {
       String base = "http://localhost:" + STUB.getAddress().getPort();
+      TestTokens.register(registry);
+      registry.add("services.identity.base-url", () -> base);
       registry.add("services.inventory.base-url", () -> base);
-      registry.add("services.product-query.base-url", () -> base);
+      registry.add("services.listing.base-url", () -> base);
       registry.add("services.inventory.read-timeout-ms", () -> 500);
    }
 
@@ -163,9 +167,17 @@ class CheckoutIntegrationTest {
       inventoryAuthHeaders.clear();
    }
 
+   /** Calls as an admin, who may act for any customer; use the four-argument form to act as someone else or anonymously. */
    private Reply call(String method, String path, String body) throws Exception {
+      return call(method, path, body, TestTokens.admin());
+   }
+
+   private Reply call(String method, String path, String body, String token) throws Exception {
       HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
          .header("Content-Type", "application/json");
+      if (token != null) {
+         request.header("Authorization", "Bearer " + token);
+      }
       request.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
       HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
       JsonNode json = response.body() == null || response.body().isBlank() ? JSON.createObjectNode() : JSON.readTree(response.body());
@@ -173,7 +185,7 @@ class CheckoutIntegrationTest {
    }
 
    private Reply draft(UUID customer, String itemsJson) throws Exception {
-      return call("POST", "/checkouts", "{\"customerId\":\"" + customer + "\",\"items\":" + itemsJson + "}");
+      return call("POST", "/checkouts", "{\"items\":" + itemsJson + "}", TestTokens.buyer(customer));
    }
 
    private String draftId(UUID customer) throws Exception {
@@ -209,8 +221,8 @@ class CheckoutIntegrationTest {
       UUID customer = UUID.randomUUID();
 
       Reply reply = call("POST", "/checkouts",
-         "{\"customerId\":\"" + customer + "\",\"items\":[{\"skuId\":2,\"quantity\":3,\"unitPrice\":0.01},"
-            + "{\"skuId\":3,\"quantity\":1,\"unitPrice\":0.01}]}");
+         "{\"items\":[{\"skuId\":2,\"quantity\":3,\"unitPrice\":0.01},"
+            + "{\"skuId\":3,\"quantity\":1,\"unitPrice\":0.01}]}", TestTokens.buyer(customer));
 
       assertThat(reply.status()).isEqualTo(201);
       assertThat(reply.body().path("customerId").asText()).isEqualTo(customer.toString());
@@ -221,7 +233,7 @@ class CheckoutIntegrationTest {
       assertThat(items.get(0).path("sellerId").asText()).isEqualTo(SELLER_A.toString());
       assertThat(items.get(1).path("sellerId").asText()).isEqualTo(SELLER_B.toString());
       assertThat(reply.body().path("totalAmount").decimalValue()).isEqualByComparingTo("92.00"); // 3 x 20.50 + 1 x 30.50
-      assertThat(inventoryAuthHeaders).as("inventory is called without any credentials").containsExactly("null");
+      assertThat(inventoryAuthHeaders).as("inventory is called as this service").containsExactly("Bearer stub-service-token");
       assertThat(events(reply.body().path("checkoutId").asText(), "drafted")).hasSize(1);
    }
 
@@ -273,17 +285,41 @@ class CheckoutIntegrationTest {
       assertThat(draft(customer, "[]").status()).isEqualTo(400);
       assertThat(draft(customer, "[{\"skuId\":2,\"quantity\":0}]").status()).isEqualTo(400);
       assertThat(call("POST", "/checkouts",
-         "{\"customerId\":\"" + customer + "\",\"items\":[{\"skuId\":2,\"quantity\":1}],\"ttlSeconds\":999999}").status()).isEqualTo(400);
+         "{\"items\":[{\"skuId\":2,\"quantity\":1}],\"ttlSeconds\":999999}", TestTokens.buyer(customer)).status()).isEqualTo(400);
       assertThat(inventoryCalls).isEmpty();
    }
 
    @Test
-   void theCustomerIsRequired() throws Exception {
-      Reply reply = call("POST", "/checkouts", "{\"items\":[{\"skuId\":2,\"quantity\":1}]}");
+   void onlySignedInUsersCanDraftAndTheCustomerIsTheCaller() throws Exception {
+      String items = "{\"items\":[{\"skuId\":2,\"quantity\":1}]}";
 
-      assertThat(reply.status()).isEqualTo(400);
-      assertThat(reply.body().path("invalidFields").has("customerId")).isTrue();
+      assertThat(call("POST", "/checkouts", items, null).status()).as("anonymous").isEqualTo(401);
+      assertThat(call("POST", "/checkouts", items, TestTokens.system()).status()).as("a service is not a customer").isEqualTo(403);
       assertThat(inventoryCalls).isEmpty();
+
+      UUID customer = UUID.randomUUID();
+      Reply reply = call("POST", "/checkouts", "{\"customerId\":\"" + UUID.randomUUID() + "\",\"items\":[{\"skuId\":2,\"quantity\":1}]}",
+         TestTokens.buyer(customer));
+      assertThat(reply.status()).isEqualTo(201);
+      assertThat(reply.body().path("customerId").asText()).as("a customerId in the body is ignored").isEqualTo(customer.toString());
+   }
+
+   @Test
+   void aCheckoutCanOnlyBeReadCommittedOrCancelledByItsCustomerOrAnAdmin() throws Exception {
+      UUID customer = UUID.randomUUID();
+      String id = draftId(customer);
+      String other = TestTokens.buyer(UUID.randomUUID());
+      inventoryCalls.clear();
+
+      assertThat(call("GET", "/checkouts/" + id, null, null).status()).isEqualTo(401);
+      assertThat(call("GET", "/checkouts/" + id, null, other).status()).isEqualTo(403);
+      assertThat(call("POST", "/checkouts/" + id + "/commit", null, other).status()).isEqualTo(403);
+      assertThat(call("POST", "/checkouts/" + id + "/cancel", null, other).status()).isEqualTo(403);
+      assertThat(inventoryCalls).as("nothing reached inventory").isEmpty();
+
+      assertThat(call("GET", "/checkouts/" + id, null, TestTokens.buyer(customer)).status()).isEqualTo(200);
+      assertThat(call("POST", "/checkouts/" + id + "/commit", null, TestTokens.buyer(customer)).status()).isEqualTo(200);
+      assertThat(call("GET", "/checkouts/" + id, null, TestTokens.admin()).status()).isEqualTo(200);
    }
 
    // ---- reading ------------------------------------------------------------------------------------------------

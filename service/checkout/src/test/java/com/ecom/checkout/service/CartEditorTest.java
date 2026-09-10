@@ -22,6 +22,17 @@ import static org.mockito.Mockito.when;
 
 class CartEditorTest {
 
+   @org.junit.jupiter.api.BeforeEach
+   void signIn() {
+      com.ecom.security.SecurityContext.setPrincipal(
+         com.ecom.security.UserPrincipal.of("u-1", "admin@example.com", com.ecom.security.UserRole.ROLE_ADMIN, null));
+   }
+
+   @org.junit.jupiter.api.AfterEach
+   void signOut() {
+      com.ecom.security.SecurityContext.clear();
+   }
+
    private final LoadCartPort load = mock(LoadCartPort.class);
    private final SaveCartPort save = mock(SaveCartPort.class);
    private final CartEditor editor = new CartEditor(load, save, new EntityVersionValidator(), new CartMapper());

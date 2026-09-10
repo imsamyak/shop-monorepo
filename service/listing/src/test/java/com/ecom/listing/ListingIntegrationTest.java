@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,6 +30,11 @@ class ListingIntegrationTest {
 
    private static final ObjectMapper JSON = new ObjectMapper();
 
+   @DynamicPropertySource
+   static void jwt(DynamicPropertyRegistry registry) {
+      TestTokens.register(registry);
+   }
+
    @Value("${local.server.port}")
    int port;
 
@@ -42,9 +49,17 @@ class ListingIntegrationTest {
       }
    }
 
+   /** Calls as an admin, who may act on anything; use the four-argument form to act as someone else or anonymously. */
    private Reply call(String method, String path, String body) throws Exception {
+      return call(method, path, body, TestTokens.admin());
+   }
+
+   private Reply call(String method, String path, String body, String token) throws Exception {
       HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + path))
          .header("Content-Type", "application/json");
+      if (token != null) {
+         request.header("Authorization", "Bearer " + token);
+      }
       request.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
       HttpResponse<String> response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
       JsonNode json = response.body() == null || response.body().isBlank() ? JSON.createObjectNode() : JSON.readTree(response.body());
@@ -57,7 +72,7 @@ class ListingIntegrationTest {
 
    private Reply createProduct(UUID seller, String title) throws Exception {
       return call("POST", "/products",
-         "{\"title\":\"" + title + "\",\"description\":\"A product\",\"defaultPrice\":100.00,\"sellerId\":\"" + seller + "\"}");
+         "{\"title\":\"" + title + "\",\"description\":\"A product\",\"defaultPrice\":100.00}", TestTokens.seller(seller));
    }
 
    private Reply createSku(String productId, String propertiesJson) throws Exception {
@@ -111,12 +126,54 @@ class ListingIntegrationTest {
       return events;
    }
 
-   @Test
-   void theSellerIsRequired() throws Exception {
-      Reply missing = call("POST", "/products", "{\"title\":\"Laptop Pro\",\"description\":\"d\",\"defaultPrice\":10.00}");
+   // ------------------------------------------------------------ who may do what
 
-      assertThat(missing.status()).isEqualTo(400);
-      assertThat(missing.body().path("invalidFields").has("sellerId")).isTrue();
+   private static final String NEW_PRODUCT = "{\"title\":\"Laptop Pro\",\"description\":\"d\",\"defaultPrice\":10.00}";
+
+   @Test
+   void onlySellersCreateProductsAndTheyOwnWhatTheyCreate() throws Exception {
+      assertThat(call("POST", "/products", NEW_PRODUCT, null).status()).as("anonymous").isEqualTo(401);
+      assertThat(call("POST", "/products", NEW_PRODUCT, "not.a.token").status()).as("invalid token").isEqualTo(401);
+      assertThat(call("POST", "/products", NEW_PRODUCT, TestTokens.buyer()).status()).as("buyer").isEqualTo(403);
+      assertThat(call("POST", "/products", NEW_PRODUCT, TestTokens.admin()).status()).as("admin has no seller").isEqualTo(403);
+
+      UUID seller = newSeller();
+      Reply created = call("POST", "/products", NEW_PRODUCT, TestTokens.seller(seller));
+
+      assertThat(created.status()).isEqualTo(201);
+      assertThat(created.text("sellerId")).as("taken from the token").isEqualTo(seller.toString());
+   }
+
+   @Test
+   void aSellerCanOnlyChangeTheirOwnProductsAndSkusButAnAdminCanChangeAny() throws Exception {
+      UUID owner = newSeller();
+      String other = TestTokens.seller(newSeller());
+      String productId = createProduct(owner, "Laptop Pro").text("id");
+      String body = "{\"version\":0,\"title\":\"Laptop Pro 2\"}";
+
+      assertThat(call("PATCH", "/products/" + productId, body, null).status()).isEqualTo(401);
+      assertThat(call("PATCH", "/products/" + productId, body, TestTokens.buyer()).status()).isEqualTo(403);
+      assertThat(call("PATCH", "/products/" + productId, body, other).status()).isEqualTo(403);
+      assertThat(call("POST", "/products/" + productId + "/skus", "{\"properties\":{}}", other).status()).isEqualTo(403);
+      assertThat(call("DELETE", "/products/" + productId + "?version=0", null, other).status()).isEqualTo(403);
+
+      Reply sku = call("POST", "/products/" + productId + "/skus", "{\"properties\":{\"color\":\"red\"}}", TestTokens.seller(owner));
+      assertThat(sku.status()).isEqualTo(201);
+      String skuPath = "/products/" + productId + "/skus/" + sku.text("skuId");
+      assertThat(call("PUT", skuPath, "{\"version\":0,\"price\":9.00}", other).status()).isEqualTo(403);
+      assertThat(call("DELETE", skuPath + "?version=0", null, other).status()).isEqualTo(403);
+
+      assertThat(call("PATCH", "/products/" + productId, body, TestTokens.seller(owner)).status()).isEqualTo(200);
+      assertThat(call("PUT", skuPath, "{\"version\":0,\"price\":9.00}", TestTokens.admin()).status()).as("admin").isEqualTo(200);
+      assertThat(call("DELETE", "/products/" + productId + "?version=1", null, TestTokens.admin()).status()).isEqualTo(200);
+   }
+
+   @Test
+   void readingIsPublic() throws Exception {
+      String productId = createProduct(newSeller(), "Laptop Pro").text("id");
+
+      assertThat(call("GET", "/products/" + productId, null, null).status()).isEqualTo(200);
+      assertThat(call("GET", "/products", null, null).status()).isEqualTo(200);
    }
 
    @Test
@@ -185,7 +242,7 @@ class ListingIntegrationTest {
 
    @Test
    void frameworkErrorsKeepTheirProperStatus() throws Exception {
-      assertThat(call("POST", "/products", "{not json").status()).isEqualTo(400);
+      assertThat(call("POST", "/products", "{not json", TestTokens.seller(newSeller())).status()).isEqualTo(400);
       assertThat(call("GET", "/nope", null).status()).isEqualTo(404);
       assertThat(call("PUT", "/products/not-a-uuid", "{\"version\":0,\"title\":\"Valid title\"}").status()).isEqualTo(400);
       assertThat(call("DELETE", "/products", null).status()).isEqualTo(405);

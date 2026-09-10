@@ -13,6 +13,8 @@ import com.ecom.checkout.port.in.usecase.record.RecordCheckouts;
 import com.ecom.checkout.port.out.client.inventory.CommitStockPort;
 import com.ecom.checkout.port.out.persistence.LoadCheckoutPort;
 import com.ecom.checkout.service.mapper.CheckoutMapper;
+import com.ecom.security.OwnershipGuard;
+import com.ecom.security.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -40,6 +42,7 @@ public class CommitCheckoutService implements CommitCheckoutUseCase {
    public CheckoutResult execute(CommitCheckoutCmd cmd) {
       Checkout checkout = loadCheckoutPort.loadById(cmd.checkoutId())
             .orElseThrow(() -> CheckoutNotFoundException.of(cmd.checkoutId()));
+      OwnershipGuard.requireUserOr(checkout.getCustomerId(), UserRole.ROLE_ADMIN);
 
       if (checkout.getStatus() == CheckoutStatus.COMMITTED) {
          return checkoutMapper.toResult(checkout);

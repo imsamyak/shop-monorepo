@@ -12,6 +12,8 @@ import com.ecom.listing.port.out.persistence.product.LoadProductPort;
 import com.ecom.listing.port.out.persistence.sku.LoadSkuPort;
 import com.ecom.listing.port.out.persistence.sku.SaveSkuPort;
 import com.ecom.listing.service.sku.mapper.SkuMapper;
+import com.ecom.security.OwnershipGuard;
+import com.ecom.security.UserRole;
 import com.ecom.shared.messaging.DomainEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class CreateSkuService implements CreateSkuUseCase {
    public SkuResult execute(CreateSkuCmd cmd) {
       Product product = loadProductPort.load(cmd.productId())
           .orElseThrow(() -> ProductNotFoundException.of(cmd.productId()));
+      OwnershipGuard.requireSellerOr(product.getSellerId(), UserRole.ROLE_ADMIN);
 
 
       Sku sku = skuMapper.toEntity(cmd, product);
