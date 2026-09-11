@@ -23,6 +23,7 @@
         <module>checkout</module>
         <module>order</module>
         <module>catalog</module>
+        <module>asset</module>
     </modules>
 
 </project>

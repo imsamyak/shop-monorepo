@@ -17,7 +17,7 @@ $ErrorActionPreference = 'Stop'
 $composeFile = Join-Path $PSScriptRoot 'docker-compose.yml'
 
 # name -> port: the contract with infra/src/main/resources/ecom-infra-local.yml
-$endpoints = [ordered]@{ postgres = 5432; rabbitmq = 5672; dynamodb = 8000; mongo = 27017 }
+$endpoints = [ordered]@{ postgres = 5432; rabbitmq = 5672; dynamodb = 8000; mongo = 27017; s3 = 9090 }
 
 # Windows PowerShell 5.1 turns anything a native command writes to stderr (Docker's progress output included)
 # into an error, so errors are only taken from the exit code.

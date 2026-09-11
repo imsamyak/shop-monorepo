@@ -23,6 +23,7 @@
         <module>module/shared</module>
         <module>module/security</module>
         <module>module/messaging</module>
+        <module>module/asset</module>
 
         <!--infra-->
         <module>infra</module>
@@ -45,6 +46,11 @@
             <dependency>
                 <groupId>com.ecom</groupId>
                 <artifactId>security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ecom</groupId>
+                <artifactId>asset</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

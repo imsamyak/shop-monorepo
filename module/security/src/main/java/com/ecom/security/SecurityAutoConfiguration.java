@@ -3,13 +3,16 @@ package com.ecom.security;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+@EnableConfigurationProperties(CorsProperties.class)
 public class SecurityAutoConfiguration {
 
    /** Only registered when the application provides a {@link PrincipalResolver}; otherwise every request is anonymous. */
@@ -27,11 +30,22 @@ public class SecurityAutoConfiguration {
    }
 
    @Bean
-   public WebMvcConfigurer securityWebMvcConfigurer(SecurityInterceptor interceptor) {
+   public WebMvcConfigurer securityWebMvcConfigurer(SecurityInterceptor interceptor, CorsProperties cors) {
       return new WebMvcConfigurer() {
          @Override
          public void addInterceptors(InterceptorRegistry registry) {
             registry.addInterceptor(interceptor).addPathPatterns("/**");
+         }
+
+         /** Browsers ask with an unauthenticated OPTIONS request first, which is answered here before any role check. */
+         @Override
+         public void addCorsMappings(CorsRegistry registry) {
+            registry.addMapping("/**")
+                .allowedOriginPatterns(cors.allowedOrigins().toArray(String[]::new))
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .exposedHeaders("Location")
+                .maxAge(3600);
          }
       };
    }

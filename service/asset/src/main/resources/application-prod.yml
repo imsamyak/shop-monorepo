@@ -1,0 +1,16 @@
+# Production: every secret comes from the environment (no defaults).
+# AWS credentials are not configured here at all: the SDK reads AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (or the
+# IAM role of the machine). The bucket must allow public s3:GetObject on images/* so the files can be shown.
+ecom:
+  security:
+    jwt:
+      jwks-uri: ${IDENTITY_JWKS_URI}
+  asset:
+    client: s3.assets
+  client:
+    s3:
+      assets:
+        bucket: ${ASSETS_BUCKET:shop-catalog-sk}
+        region: ${AWS_REGION:ap-south-1}
+        # Set to a CDN address if the files are served through one; otherwise it is the bucket's own address.
+        public-base-url: ${ASSETS_PUBLIC_BASE_URL:}

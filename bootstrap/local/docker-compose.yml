@@ -94,6 +94,16 @@ services:
       retries: 20
       start_period: 10s
 
+  # ecom.client.s3.assets -> http://localhost:9090, standing in for the S3 bucket (Adobe's S3Mock: no login, anyone can
+  # read, which is what the real bucket's policy does). It creates the bucket on start; files are lost when the
+  # container is recreated.
+  s3:
+    image: adobe/s3mock:${S3MOCK_TAG}
+    ports:
+      - "9090:9090"
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: ecom-assets
+
 volumes:
   postgres-data:
   rabbitmq-data:

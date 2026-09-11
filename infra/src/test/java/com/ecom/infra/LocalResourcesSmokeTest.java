@@ -1,6 +1,8 @@
 package com.ecom.infra;
 
+import com.ecom.asset.AssetStorage;
 import com.ecom.inbox.InboxListener;
+import com.ecom.infra.adapter.asset.S3AssetStorageAdapterConfiguration;
 import com.ecom.infra.adapter.inbox.KafkaInboxAdapterConfiguration;
 import com.ecom.infra.adapter.inbox.RabbitInboxAdapterConfiguration;
 import com.ecom.infra.adapter.outbox.KafkaOutboxAdapterConfiguration;
@@ -11,6 +13,7 @@ import com.ecom.infra.client.kafka.KafkaClientConfiguration;
 import com.ecom.infra.client.mongodb.MongoClientConfiguration;
 import com.ecom.infra.client.mongodb.MongoClients;
 import com.ecom.infra.client.rabbit.RabbitClientConfiguration;
+import com.ecom.infra.client.s3.S3ClientConfiguration;
 import com.ecom.outbox.OutboxMessage;
 import com.ecom.outbox.OutboxPublisher;
 import com.mongodb.client.MongoCollection;
@@ -45,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Runs the real configuration against the containers from {@code bootstrap/local} (RabbitMQ on 5672, DynamoDB Local
- * on 8000, and Kafka on 9092 when started with its compose profile) with nothing but the {@code local} profile. Each
+ * on 8000, S3Mock on 9090, and Kafka on 9092 when started with its compose profile) with nothing but the {@code local} profile. Each
  * test is skipped when its container is not running, so the normal build never needs Docker. Start them with {@code bootstrap/local/local.ps1 up}.
  */
 class LocalResourcesSmokeTest {
@@ -93,7 +96,8 @@ class LocalResourcesSmokeTest {
        KafkaClientConfiguration.class, RabbitClientConfiguration.class, DynamoDbClientConfiguration.class,
        MongoClientConfiguration.class,
        KafkaOutboxAdapterConfiguration.class, KafkaInboxAdapterConfiguration.class,
-       RabbitOutboxAdapterConfiguration.class, RabbitInboxAdapterConfiguration.class})
+       RabbitOutboxAdapterConfiguration.class, RabbitInboxAdapterConfiguration.class,
+       S3ClientConfiguration.class, S3AssetStorageAdapterConfiguration.class})
    static class Service {
    }
 
@@ -189,6 +193,37 @@ class LocalResourcesSmokeTest {
          } finally {
             dynamo.deleteTable(request -> request.tableName(table));
          }
+      }
+   }
+
+   @Test
+   void aFileStoredInS3MockCanBeReadByAnyoneAtItsPublicUrl() throws Exception {
+      requireLocal(9090, "S3Mock");
+
+      try (ConfigurableApplicationContext context = new SpringApplicationBuilder(Service.class)
+          .web(WebApplicationType.NONE)
+          .profiles("local")
+          .properties("ecom.asset.client=s3.assets")
+          .run()) {
+         AssetStorage storage = context.getBean(AssetStorage.class);
+         String key = "images/smoke/" + UUID.randomUUID() + ".png";
+         byte[] content = {(byte) 0x89, 'P', 'N', 'G', 1, 2, 3};
+         storage.put(key, content, "image/png");
+         try {
+            var response = java.net.http.HttpClient.newHttpClient().send(
+                java.net.http.HttpRequest.newBuilder(java.net.URI.create(storage.publicUrl(key))).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofByteArray());
+
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.body()).isEqualTo(content);
+            assertThat(response.headers().firstValue("Content-Type")).contains("image/png");
+         } finally {
+            storage.delete(key);
+         }
+         var gone = java.net.http.HttpClient.newHttpClient().send(
+             java.net.http.HttpRequest.newBuilder(java.net.URI.create(storage.publicUrl(key))).build(),
+             java.net.http.HttpResponse.BodyHandlers.discarding());
+         assertThat(gone.statusCode()).isEqualTo(404);
       }
    }
 }

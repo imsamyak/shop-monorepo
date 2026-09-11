@@ -25,6 +25,17 @@ ecom:
         access-key-id: local
         secret-access-key: local
 
+    s3:
+      assets:
+        bucket: ecom-assets
+        region: ap-south-1
+        # S3Mock stands in for S3; it needs the bucket in the path
+        endpoint: http://localhost:9090
+        path-style: true
+        # any key will do, S3Mock does not check it
+        access-key-id: local
+        secret-access-key: local
+
     mongodb:
       main:
         # the local container runs without authentication

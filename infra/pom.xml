@@ -39,6 +39,12 @@
             <optional>true</optional>
         </dependency>
 
+        <dependency>
+            <groupId>com.ecom</groupId>
+            <artifactId>asset</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Clients are optional: a service adds only the ones it uses, and the matching auto-configuration activates. -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
@@ -49,6 +55,12 @@
         <dependency>
             <groupId>org.springframework.amqp</groupId>
             <artifactId>spring-rabbit</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
             <optional>true</optional>
         </dependency>
 

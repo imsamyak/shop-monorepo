@@ -169,6 +169,31 @@ class ListingIntegrationTest {
    }
 
    @Test
+   void browsersFromAnySiteMayCallTheApi() throws Exception {
+      HttpRequest preflight = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/products"))
+         .method("OPTIONS", HttpRequest.BodyPublishers.noBody())
+         .header("Origin", "https://shop.example.com")
+         .header("Access-Control-Request-Method", "POST")
+         .header("Access-Control-Request-Headers", "authorization,content-type")
+         .build();
+      HttpResponse<String> answer = http.send(preflight, HttpResponse.BodyHandlers.ofString());
+
+      assertThat(answer.statusCode()).as("no token is needed for the preflight").isEqualTo(200);
+      assertThat(answer.headers().firstValue("Access-Control-Allow-Origin")).contains("https://shop.example.com");
+      assertThat(answer.headers().firstValue("Access-Control-Allow-Methods").orElse("")).contains("POST").contains("PATCH");
+      assertThat(answer.headers().firstValue("Access-Control-Allow-Headers").orElse("")).containsIgnoringCase("authorization");
+
+      HttpRequest refused = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/products"))
+         .POST(HttpRequest.BodyPublishers.ofString(NEW_PRODUCT))
+         .header("Content-Type", "application/json")
+         .header("Origin", "https://shop.example.com")
+         .build();
+      HttpResponse<String> response = http.send(refused, HttpResponse.BodyHandlers.ofString());
+      assertThat(response.statusCode()).isEqualTo(401);
+      assertThat(response.headers().firstValue("Access-Control-Allow-Origin")).as("the browser may read the 401").contains("https://shop.example.com");
+   }
+
+   @Test
    void readingIsPublic() throws Exception {
       String productId = createProduct(newSeller(), "Laptop Pro").text("id");
 

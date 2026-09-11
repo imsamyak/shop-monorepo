@@ -1,0 +1,20 @@
+server:
+  port: ${PORT:8088}
+
+spring:
+  application:
+    name: asset
+  profiles:
+    # The profile also selects which ecom-infra-<profile>.yml says where S3 and the other clients are.
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  servlet:
+    multipart:
+      # One request carries up to 10 images of at most 5 MB each (the 5 MB limit itself is ecom.asset.max-image-bytes).
+      max-file-size: 5MB
+      max-request-size: 50MB
+
+ecom:
+  security:
+    jwt:
+      # Tokens are signed by the identity service; this service only verifies them.
+      issuer: ${JWT_ISSUER:ecom-identity}
