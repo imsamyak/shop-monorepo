@@ -17,6 +17,7 @@ final class CatalogMapper {
             product.sellerId(),
             product.title(),
             product.description(),
+            product.images(),
             product.price(),
             product.lowestSkuPrice(),
             product.availability(),

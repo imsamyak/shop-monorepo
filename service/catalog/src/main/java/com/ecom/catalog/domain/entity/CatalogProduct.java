@@ -19,6 +19,8 @@ import java.util.List;
  * @param version        the product's version of the last applied {@code Product.Created/Updated}, null before any
  * @param created        {@code Product.Created} was received
  * @param deleted        the product was deleted; final, a late older event cannot bring it back
+ * @param images         the picture addresses in display order (the first is the main one), from the last applied
+ *                       {@code Product.Created/Updated}
  * @param price          the product's default price, which no event changes after creation
  * @param createdAt      when the catalog first received {@code Product.Created}; never overwritten
  * @param skus           the live SKUs, derived from the SKU records
@@ -35,6 +37,7 @@ public record CatalogProduct(
       String sellerId,
       String title,
       String description,
+      List<String> images,
       BigDecimal price,
       Instant createdAt,
       List<SkuSummary> skus,
@@ -43,7 +46,7 @@ public record CatalogProduct(
 ) {
 
    public static CatalogProduct empty(String id) {
-      return CatalogProduct.builder().id(id).skus(List.of()).availability(Availability.OUT_OF_STOCK).build();
+      return CatalogProduct.builder().id(id).images(List.of()).skus(List.of()).availability(Availability.OUT_OF_STOCK).build();
    }
 
    /**
@@ -58,14 +61,15 @@ public record CatalogProduct(
       if (!created) {
          next = next.toBuilder().created(true).sellerId(event.sellerId()).price(event.defaultPrice()).createdAt(now).build();
       }
-      return next.applyUpdated(event.title(), event.description(), event.version());
+      return next.applyUpdated(event.title(), event.description(), event.images(), event.version());
    }
 
-   public CatalogProduct applyUpdated(String title, String description, long version) {
+   public CatalogProduct applyUpdated(String title, String description, List<String> images, long version) {
       if (deleted || (this.version != null && version <= this.version)) {
          return this;
       }
-      return toBuilder().title(title).description(description).version(version).build();
+      return toBuilder().title(title).description(description).images(images == null ? List.of() : List.copyOf(images))
+            .version(version).build();
    }
 
    /**

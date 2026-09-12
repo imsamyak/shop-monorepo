@@ -11,6 +11,7 @@ import java.util.Map;
 /**
  * A product as the home page shows it. There are no quantities, only {@link Availability}.
  *
+ * @param images         the picture addresses in display order, the first being the main one
  * @param price          the product's default price
  * @param lowestSkuPrice the cheapest SKU, null while the product has no SKU
  */
@@ -19,6 +20,7 @@ public record ProductResult(
       String sellerId,
       String title,
       String description,
+      List<String> images,
       BigDecimal price,
       BigDecimal lowestSkuPrice,
       Availability availability,

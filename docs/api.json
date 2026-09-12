@@ -1,0 +1,1199 @@
+{
+  "note": "Every error is {title, status, errorCode, detail, instance, timestamp, invalidFields?}; invalidFields is {field: message} on 400. Send the access token as 'Authorization: Bearer <accessToken>'. 401 = no or bad token, 403 = signed in but not allowed. Updates and deletes need the record's current 'version' (409 when stale). Every service allows browser calls from any origin. Endpoints that only other services call (inventory reservations, GET /skus on listing) are not listed.",
+  "services": {
+    "identity": {
+      "baseUrl": "http://localhost:8086",
+      "endpoints": [
+        {
+          "usecase": "RegisterBuyer",
+          "api": "POST /auth/register",
+          "query": {},
+          "params": {},
+          "body": {
+            "email": "string (max 254)",
+            "password": "string (min 8, max 200)"
+          },
+          "response": {
+            "status": 201,
+            "body": {
+              "accessToken": "string",
+              "tokenType": "Bearer",
+              "expiresIn": "long (seconds)",
+              "user": {
+                "id": "string",
+                "email": "string",
+                "role": "ROLE_BUYER|ROLE_SELLER|ROLE_ADMIN",
+                "sellerId": "string|null"
+              }
+            }
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "RegisterSeller",
+          "api": "POST /auth/register/seller",
+          "query": {},
+          "params": {},
+          "body": {
+            "email": "string (max 254)",
+            "password": "string (min 8, max 200)"
+          },
+          "response": {
+            "status": 201,
+            "body": {
+              "accessToken": "string",
+              "tokenType": "Bearer",
+              "expiresIn": "long (seconds)",
+              "user": {
+                "id": "string",
+                "email": "string",
+                "role": "ROLE_BUYER|ROLE_SELLER|ROLE_ADMIN",
+                "sellerId": "string|null"
+              }
+            }
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "Login",
+          "api": "POST /auth/login",
+          "query": {},
+          "params": {},
+          "body": {
+            "email": "string",
+            "password": "string"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "accessToken": "string",
+              "tokenType": "Bearer",
+              "expiresIn": "long (seconds)",
+              "user": {
+                "id": "string",
+                "email": "string",
+                "role": "ROLE_BUYER|ROLE_SELLER|ROLE_ADMIN",
+                "sellerId": "string|null"
+              }
+            }
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "GetCurrentUser",
+          "api": "GET /auth/me",
+          "query": {},
+          "params": {},
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "id": "string",
+              "email": "string",
+              "role": "ROLE_BUYER|ROLE_SELLER|ROLE_ADMIN",
+              "sellerId": "string|null"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "any signed-in user"
+          }
+        },
+        {
+          "usecase": "Logout",
+          "api": "POST /auth/logout",
+          "query": {},
+          "params": {},
+          "body": {},
+          "response": {
+            "status": 204,
+            "body": {}
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "ForgotPassword",
+          "api": "POST /auth/forgot-password",
+          "query": {},
+          "params": {},
+          "body": {
+            "email": "string"
+          },
+          "response": {
+            "status": 202,
+            "body": {}
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "ResetPassword",
+          "api": "POST /auth/reset-password",
+          "query": {},
+          "params": {},
+          "body": {
+            "token": "string",
+            "newPassword": "string"
+          },
+          "response": {
+            "status": 204,
+            "body": {}
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "CreateSeller",
+          "api": "POST /auth/admin/sellers",
+          "query": {},
+          "params": {},
+          "body": {
+            "email": "string (max 254)",
+            "password": "string (min 8, max 200)"
+          },
+          "response": {
+            "status": 201,
+            "body": {
+              "id": "string",
+              "email": "string",
+              "role": "ROLE_BUYER|ROLE_SELLER|ROLE_ADMIN",
+              "sellerId": "string|null"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_ADMIN"
+          }
+        }
+      ]
+    },
+    "catalog": {
+      "baseUrl": "http://localhost:8087",
+      "endpoints": [
+        {
+          "usecase": "ListCatalogProducts",
+          "api": "GET /catalog/products",
+          "query": {
+            "page": "int (default 0)",
+            "size": "int (default 20, max 100)",
+            "sort": "createdAt,desc (default) | createdAt,asc | price,asc | price,desc",
+            "availability": "AVAILABLE|OUT_OF_STOCK (optional)"
+          },
+          "params": {},
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "items": [
+                {
+                  "id": "string",
+                  "sellerId": "string",
+                  "title": "string",
+                  "description": "string",
+                  "images": [
+                    "string (public address of an uploaded image; the first is the main picture)"
+                  ],
+                  "price": "decimal",
+                  "lowestSkuPrice": "decimal|null",
+                  "availability": "AVAILABLE|OUT_OF_STOCK",
+                  "createdAt": "iso-instant",
+                  "skus": [
+                    {
+                      "skuId": "string",
+                      "price": "decimal",
+                      "properties": {
+                        "<key>": "<value>"
+                      },
+                      "availability": "AVAILABLE|OUT_OF_STOCK"
+                    }
+                  ]
+                }
+              ],
+              "page": "int",
+              "size": "int",
+              "totalElements": "long",
+              "totalPages": "int"
+            }
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "GetCatalogProduct",
+          "api": "GET /catalog/products/{id}",
+          "query": {},
+          "params": {
+            "id": "string"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "id": "string",
+              "sellerId": "string",
+              "title": "string",
+              "description": "string",
+              "images": [
+                "string (public address of an uploaded image; the first is the main picture)"
+              ],
+              "price": "decimal",
+              "lowestSkuPrice": "decimal|null",
+              "availability": "AVAILABLE|OUT_OF_STOCK",
+              "createdAt": "iso-instant",
+              "skus": [
+                {
+                  "skuId": "string",
+                  "price": "decimal",
+                  "properties": {
+                    "<key>": "<value>"
+                  },
+                  "availability": "AVAILABLE|OUT_OF_STOCK"
+                }
+              ]
+            }
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        }
+      ]
+    },
+    "asset": {
+      "baseUrl": "http://localhost:8088",
+      "endpoints": [
+        {
+          "usecase": "UploadImages",
+          "api": "POST /assets/images",
+          "query": {},
+          "params": {},
+          "body": {
+            "files": "one or more image files (JPEG, PNG, GIF or WebP, max 5 MB each, at most 10); the type is read from the file itself"
+          },
+          "response": {
+            "status": 201,
+            "body": {
+              "items": [
+                {
+                  "key": "string (images/<userId>/<random>.<ext>)",
+                  "url": "string (public address)",
+                  "contentType": "image/jpeg|image/png|image/gif|image/webp",
+                  "size": "long (bytes)"
+                }
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN"
+          },
+          "contentType": "multipart/form-data"
+        },
+        {
+          "usecase": "DeleteImage",
+          "api": "DELETE /assets/images",
+          "query": {
+            "key": "string (the key returned on upload)"
+          },
+          "params": {},
+          "body": {},
+          "response": {
+            "status": 204,
+            "body": {}
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (only the user who uploaded it, or an admin)"
+          }
+        }
+      ]
+    },
+    "listing": {
+      "baseUrl": "http://localhost:8081",
+      "endpoints": [
+        {
+          "usecase": "CreateProduct",
+          "api": "POST /products",
+          "query": {},
+          "params": {},
+          "body": {
+            "title": "string (5-50)",
+            "description": "string (max 200)",
+            "defaultPrice": "decimal (>= 1.00)",
+            "images": "[string] (optional, at most 10, from the asset service, in display order)"
+          },
+          "response": {
+            "status": 201,
+            "body": {
+              "id": "uuid",
+              "sellerId": "uuid",
+              "title": "string",
+              "description": "string|null",
+              "defaultPrice": "decimal",
+              "images": [
+                "string (public address of an uploaded image; the first is the main picture)"
+              ],
+              "version": "long",
+              "deletedSkuIds": [
+                "long"
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER (the seller comes from the token)"
+          }
+        },
+        {
+          "usecase": "ListProducts",
+          "api": "GET /products",
+          "query": {
+            "sellerId": "uuid (optional)",
+            "title": "string, contains (optional)",
+            "page": "int (default 0)",
+            "size": "int (default 20, max 100)",
+            "sort": "createdAt,desc (default) | createdAt,asc | title,asc | title,desc"
+          },
+          "params": {},
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "items": [
+                {
+                  "id": "uuid",
+                  "sellerId": "uuid",
+                  "title": "string",
+                  "description": "string|null",
+                  "defaultPrice": "decimal",
+                  "images": [
+                    "string (public address of an uploaded image; the first is the main picture)"
+                  ],
+                  "version": "long",
+                  "deletedSkuIds": [
+                    "long"
+                  ]
+                }
+              ],
+              "page": "int",
+              "size": "int",
+              "totalElements": "long",
+              "totalPages": "int",
+              "nextPage": "int|null"
+            }
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "GetProduct",
+          "api": "GET /products/{id}",
+          "query": {},
+          "params": {
+            "id": "uuid"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "id": "uuid",
+              "sellerId": "uuid",
+              "title": "string",
+              "description": "string|null",
+              "defaultPrice": "decimal",
+              "images": [
+                "string (public address of an uploaded image; the first is the main picture)"
+              ],
+              "version": "long",
+              "deletedSkuIds": [
+                "long"
+              ]
+            }
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "UpdateProduct",
+          "api": "PATCH /products/{id}",
+          "query": {},
+          "params": {
+            "id": "uuid"
+          },
+          "body": {
+            "version": "long (the current version; a stale one is rejected with 409)",
+            "title": "string (5-50, required)",
+            "description": "string|null (omit = unchanged, null = clear)",
+            "images": "[string]|null (omit = unchanged, null or [] = remove all, a list = replace, order kept)"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "id": "uuid",
+              "sellerId": "uuid",
+              "title": "string",
+              "description": "string|null",
+              "defaultPrice": "decimal",
+              "images": [
+                "string (public address of an uploaded image; the first is the main picture)"
+              ],
+              "version": "long",
+              "deletedSkuIds": [
+                "long"
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own)"
+          }
+        },
+        {
+          "usecase": "ReplaceProduct",
+          "api": "PUT /products/{id}",
+          "query": {},
+          "params": {
+            "id": "uuid"
+          },
+          "body": {
+            "version": "long (the current version; a stale one is rejected with 409)",
+            "title": "string (5-50, required)",
+            "description": "string|null",
+            "images": "[string]|null"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "id": "uuid",
+              "sellerId": "uuid",
+              "title": "string",
+              "description": "string|null",
+              "defaultPrice": "decimal",
+              "images": [
+                "string (public address of an uploaded image; the first is the main picture)"
+              ],
+              "version": "long",
+              "deletedSkuIds": [
+                "long"
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own)"
+          }
+        },
+        {
+          "usecase": "DeleteProduct",
+          "api": "DELETE /products/{id}",
+          "query": {
+            "version": "long (required)"
+          },
+          "params": {
+            "id": "uuid"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "id": "uuid",
+              "sellerId": "uuid",
+              "title": "string",
+              "description": "string|null",
+              "defaultPrice": "decimal",
+              "images": [
+                "string (public address of an uploaded image; the first is the main picture)"
+              ],
+              "version": "long",
+              "deletedSkuIds": [
+                "long"
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own)"
+          }
+        },
+        {
+          "usecase": "ListSkus",
+          "api": "GET /products/{productId}/skus",
+          "query": {},
+          "params": {
+            "productId": "uuid"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": [
+              {
+                "skuId": "long",
+                "productId": "uuid",
+                "sellerId": "uuid",
+                "price": "decimal",
+                "properties": {
+                  "<key>": "<value>"
+                },
+                "version": "long"
+              }
+            ]
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "GetSku",
+          "api": "GET /products/{productId}/skus/{skuId}",
+          "query": {},
+          "params": {
+            "productId": "uuid",
+            "skuId": "long"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "skuId": "long",
+              "productId": "uuid",
+              "sellerId": "uuid",
+              "price": "decimal",
+              "properties": {
+                "<key>": "<value>"
+              },
+              "version": "long"
+            }
+          },
+          "auth": {
+            "required": false,
+            "role": null
+          }
+        },
+        {
+          "usecase": "CreateSku",
+          "api": "POST /products/{productId}/skus",
+          "query": {},
+          "params": {
+            "productId": "uuid"
+          },
+          "body": {
+            "price": "decimal >= 0 (optional)",
+            "properties": {
+              "<key>": "<value>"
+            }
+          },
+          "response": {
+            "status": 201,
+            "body": {
+              "skuId": "long",
+              "productId": "uuid",
+              "sellerId": "uuid",
+              "price": "decimal",
+              "properties": {
+                "<key>": "<value>"
+              },
+              "version": "long"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only on their own product)"
+          }
+        },
+        {
+          "usecase": "UpdateSku",
+          "api": "PUT /products/{productId}/skus/{skuId}",
+          "query": {},
+          "params": {
+            "productId": "uuid",
+            "skuId": "long"
+          },
+          "body": {
+            "version": "long (the current version; a stale one is rejected with 409)",
+            "price": "decimal >= 0 (optional)",
+            "properties": {
+              "add": {
+                "<key>": "<value>"
+              },
+              "remove": [
+                "<key>"
+              ]
+            }
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "skuId": "long",
+              "productId": "uuid",
+              "sellerId": "uuid",
+              "price": "decimal",
+              "properties": {
+                "<key>": "<value>"
+              },
+              "version": "long"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own)"
+          }
+        },
+        {
+          "usecase": "DeleteSku",
+          "api": "DELETE /products/{productId}/skus/{skuId}",
+          "query": {
+            "version": "long (required)"
+          },
+          "params": {
+            "productId": "uuid",
+            "skuId": "long"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "skuId": "long",
+              "productId": "uuid",
+              "sellerId": "uuid",
+              "price": "decimal",
+              "properties": {
+                "<key>": "<value>"
+              },
+              "version": "long"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own)"
+          }
+        }
+      ]
+    },
+    "checkout": {
+      "baseUrl": "http://localhost:8084",
+      "endpoints": [
+        {
+          "usecase": "GetCart",
+          "api": "GET /carts/{customerId}",
+          "query": {},
+          "params": {
+            "customerId": "uuid (must be the signed-in user)"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "customerId": "uuid",
+              "items": [
+                {
+                  "skuId": "long",
+                  "quantity": "int"
+                }
+              ],
+              "version": "long",
+              "updatedAt": "iso-instant"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own cart; an admin any)"
+          }
+        },
+        {
+          "usecase": "AddCartItem",
+          "api": "POST /carts/{customerId}/items",
+          "query": {},
+          "params": {
+            "customerId": "uuid"
+          },
+          "body": {
+            "skuId": "long",
+            "quantity": "int (1-1000), added to an existing line",
+            "version": "long (optional)"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "customerId": "uuid",
+              "items": [
+                {
+                  "skuId": "long",
+                  "quantity": "int"
+                }
+              ],
+              "version": "long",
+              "updatedAt": "iso-instant"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own cart)"
+          }
+        },
+        {
+          "usecase": "SetCartItem",
+          "api": "PUT /carts/{customerId}/items/{skuId}",
+          "query": {},
+          "params": {
+            "customerId": "uuid",
+            "skuId": "long"
+          },
+          "body": {
+            "quantity": "int (1-1000)",
+            "version": "long (optional)"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "customerId": "uuid",
+              "items": [
+                {
+                  "skuId": "long",
+                  "quantity": "int"
+                }
+              ],
+              "version": "long",
+              "updatedAt": "iso-instant"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own cart)"
+          }
+        },
+        {
+          "usecase": "RemoveCartItem",
+          "api": "DELETE /carts/{customerId}/items/{skuId}",
+          "query": {
+            "version": "long (optional)"
+          },
+          "params": {
+            "customerId": "uuid",
+            "skuId": "long"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "customerId": "uuid",
+              "items": [
+                {
+                  "skuId": "long",
+                  "quantity": "int"
+                }
+              ],
+              "version": "long",
+              "updatedAt": "iso-instant"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own cart)"
+          }
+        },
+        {
+          "usecase": "ClearCart",
+          "api": "DELETE /carts/{customerId}",
+          "query": {
+            "version": "long (optional)"
+          },
+          "params": {
+            "customerId": "uuid"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "customerId": "uuid",
+              "items": [
+                {
+                  "skuId": "long",
+                  "quantity": "int"
+                }
+              ],
+              "version": "long",
+              "updatedAt": "iso-instant"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own cart)"
+          }
+        },
+        {
+          "usecase": "DraftCheckout",
+          "api": "POST /checkouts",
+          "query": {},
+          "params": {},
+          "body": {
+            "items": "[{skuId: long, quantity: int (1-1000)}] (max 50; omit or empty = use the cart)",
+            "ttlSeconds": "long (1-3600, optional)"
+          },
+          "response": {
+            "status": 201,
+            "body": {
+              "checkoutId": "uuid",
+              "customerId": "uuid",
+              "status": "DRAFT|COMMITTED|CANCELLED|EXPIRED",
+              "totalAmount": "decimal",
+              "expiresAt": "iso-instant",
+              "version": "long",
+              "items": [
+                {
+                  "id": "long",
+                  "skuId": "long",
+                  "sellerId": "uuid",
+                  "quantity": "int",
+                  "unitPrice": "decimal",
+                  "subtotal": "decimal"
+                }
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (the customer is the signed-in user)"
+          }
+        },
+        {
+          "usecase": "GetCheckout",
+          "api": "GET /checkouts/{checkoutId}",
+          "query": {},
+          "params": {
+            "checkoutId": "uuid"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "checkoutId": "uuid",
+              "customerId": "uuid",
+              "status": "DRAFT|COMMITTED|CANCELLED|EXPIRED",
+              "totalAmount": "decimal",
+              "expiresAt": "iso-instant",
+              "version": "long",
+              "items": [
+                {
+                  "id": "long",
+                  "skuId": "long",
+                  "sellerId": "uuid",
+                  "quantity": "int",
+                  "unitPrice": "decimal",
+                  "subtotal": "decimal"
+                }
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own checkout)"
+          }
+        },
+        {
+          "usecase": "CommitCheckout",
+          "api": "POST /checkouts/{checkoutId}/commit",
+          "query": {},
+          "params": {
+            "checkoutId": "uuid"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "checkoutId": "uuid",
+              "customerId": "uuid",
+              "status": "DRAFT|COMMITTED|CANCELLED|EXPIRED",
+              "totalAmount": "decimal",
+              "expiresAt": "iso-instant",
+              "version": "long",
+              "items": [
+                {
+                  "id": "long",
+                  "skuId": "long",
+                  "sellerId": "uuid",
+                  "quantity": "int",
+                  "unitPrice": "decimal",
+                  "subtotal": "decimal"
+                }
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own checkout)"
+          }
+        },
+        {
+          "usecase": "CancelCheckout",
+          "api": "POST /checkouts/{checkoutId}/cancel",
+          "query": {},
+          "params": {
+            "checkoutId": "uuid"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "checkoutId": "uuid",
+              "customerId": "uuid",
+              "status": "DRAFT|COMMITTED|CANCELLED|EXPIRED",
+              "totalAmount": "decimal",
+              "expiresAt": "iso-instant",
+              "version": "long",
+              "items": [
+                {
+                  "id": "long",
+                  "skuId": "long",
+                  "sellerId": "uuid",
+                  "quantity": "int",
+                  "unitPrice": "decimal",
+                  "subtotal": "decimal"
+                }
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own checkout)"
+          }
+        }
+      ]
+    },
+    "order": {
+      "baseUrl": "http://localhost:8085",
+      "endpoints": [
+        {
+          "usecase": "GetOrder",
+          "api": "GET /orders/{orderId}",
+          "query": {},
+          "params": {
+            "orderId": "uuid"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "orderId": "uuid (same as checkoutId)",
+              "customerId": "uuid",
+              "status": "DRAFT|COMMITTED|CANCELLED",
+              "totalAmount": "decimal",
+              "version": "long",
+              "items": [
+                {
+                  "id": "long",
+                  "skuId": "long",
+                  "sellerId": "uuid",
+                  "quantity": "int",
+                  "unitPrice": "decimal",
+                  "subtotal": "decimal"
+                }
+              ]
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (only your own order; an admin any)"
+          }
+        },
+        {
+          "usecase": "ListOrders",
+          "api": "GET /orders",
+          "query": {
+            "customerId": "uuid (optional; only your own id unless you are an admin)",
+            "status": "DRAFT|COMMITTED|CANCELLED (optional)",
+            "page": "int (default 0)",
+            "size": "int (default 20, max 100)"
+          },
+          "params": {},
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "items": [
+                {
+                  "orderId": "uuid (same as checkoutId)",
+                  "customerId": "uuid",
+                  "status": "DRAFT|COMMITTED|CANCELLED",
+                  "totalAmount": "decimal",
+                  "version": "long",
+                  "items": [
+                    {
+                      "id": "long",
+                      "skuId": "long",
+                      "sellerId": "uuid",
+                      "quantity": "int",
+                      "unitPrice": "decimal",
+                      "subtotal": "decimal"
+                    }
+                  ]
+                }
+              ],
+              "page": "int",
+              "size": "int",
+              "totalElements": "long",
+              "totalPages": "int"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_BUYER | ROLE_SELLER | ROLE_ADMIN (you get your own orders; an admin everyone's)"
+          }
+        }
+      ]
+    },
+    "inventory": {
+      "baseUrl": "http://localhost:8083",
+      "endpoints": [
+        {
+          "usecase": "GetInventory",
+          "api": "GET /inventory/{skuId}",
+          "query": {},
+          "params": {
+            "skuId": "long"
+          },
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "skuId": "long",
+              "totalQuantity": "int",
+              "reservedQuantity": "int",
+              "availableQuantity": "int"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own SKU)"
+          }
+        },
+        {
+          "usecase": "ListInventory",
+          "api": "GET /inventory",
+          "query": {
+            "skuIds": "comma separated longs, max 100 (optional; then the response is {items} without paging)",
+            "page": "int (default 0)",
+            "size": "int (default 20, max 100)"
+          },
+          "params": {},
+          "body": {},
+          "response": {
+            "status": 200,
+            "body": {
+              "items": [
+                {
+                  "skuId": "long",
+                  "totalQuantity": "int",
+                  "reservedQuantity": "int",
+                  "availableQuantity": "int"
+                }
+              ],
+              "page": "int",
+              "size": "int",
+              "totalElements": "long",
+              "totalPages": "int"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_ADMIN"
+          }
+        },
+        {
+          "usecase": "AddStock",
+          "api": "POST /inventory/{skuId}/stock/add",
+          "query": {},
+          "params": {
+            "skuId": "long"
+          },
+          "body": {
+            "quantity": "int (1-1000000)"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "skuId": "long",
+              "totalQuantity": "int",
+              "reservedQuantity": "int",
+              "availableQuantity": "int"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own SKU)"
+          }
+        },
+        {
+          "usecase": "RemoveStock",
+          "api": "POST /inventory/{skuId}/stock/remove",
+          "query": {},
+          "params": {
+            "skuId": "long"
+          },
+          "body": {
+            "quantity": "int (1-1000000)"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "skuId": "long",
+              "totalQuantity": "int",
+              "reservedQuantity": "int",
+              "availableQuantity": "int"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own SKU)"
+          }
+        },
+        {
+          "usecase": "SetTotalStock",
+          "api": "POST /inventory/{skuId}/stock",
+          "query": {},
+          "params": {
+            "skuId": "long"
+          },
+          "body": {
+            "totalQuantity": "int >= 0"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "skuId": "long",
+              "totalQuantity": "int",
+              "reservedQuantity": "int",
+              "availableQuantity": "int"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": "ROLE_SELLER | ROLE_ADMIN (a seller only their own SKU)"
+          }
+        }
+      ]
+    }
+  }
+}

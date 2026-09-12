@@ -22,8 +22,8 @@ class EventContractTest {
    @Test
    @DisplayName("Resolves canonical signatures and aggregateId for product events")
    void productSignatures() {
-      Product.Created created = new Product.Created("prod-1", "seller-1", "MacBook", "Pro M3", BigDecimal.valueOf(1999), 0L);
-      Product.Updated updated = new Product.Updated("prod-1", "MacBook M3", "Updated desc", 1L);
+      Product.Created created = new Product.Created("prod-1", "seller-1", "MacBook", "Pro M3", BigDecimal.valueOf(1999), List.of("https://files.example.com/images/u/1.png"), 0L);
+      Product.Updated updated = new Product.Updated("prod-1", "MacBook M3", "Updated desc", List.of(), 1L);
       Sku.Created skuCreated = new Sku.Created("sku-1", "prod-1", "seller-1", BigDecimal.valueOf(1999), Map.of("color", "red"), 0L);
       Sku.Updated skuUpdated = new Sku.Updated("sku-1", "prod-1", BigDecimal.valueOf(1899), Map.of("color", "red"), 1L);
 

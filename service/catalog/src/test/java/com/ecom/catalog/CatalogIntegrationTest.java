@@ -100,7 +100,7 @@ class CatalogIntegrationTest {
 
    private String newProduct(String title, String price) throws Exception {
       String id = UUID.randomUUID().toString();
-      deliver(new Product.Created(id, "seller-1", title, "about " + title, new BigDecimal(price), 1));
+      deliver(new Product.Created(id, "seller-1", title, "about " + title, new BigDecimal(price), List.of(), 1));
       Thread.sleep(5);
       return id;
    }
@@ -141,6 +141,31 @@ class CatalogIntegrationTest {
 
       deliver(new Inventory.StockAdjusted(sku, -5, 0, 0, 4));
       assertThat(get("/catalog/products/" + first).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
+   }
+
+   @Test
+   void aProductShowsItsImagesInTheOrderTheSellerGaveThem() throws Exception {
+      String id = UUID.randomUUID().toString();
+      deliver(new Product.Created(id, "seller-1", "Phone", "d", new BigDecimal("5.00"),
+         List.of("https://f.example.com/3.png", "https://f.example.com/1.png", "https://f.example.com/2.png"), 1));
+
+      List<String> shown = new ArrayList<>();
+      get("/catalog/products/" + id).body().path("images").forEach(node -> shown.add(node.asText()));
+      assertThat(shown).containsExactly("https://f.example.com/3.png", "https://f.example.com/1.png", "https://f.example.com/2.png");
+
+      deliver(new Product.Updated(id, "Phone", "d", List.of("https://f.example.com/2.png"), 2));
+      assertThat(get("/catalog/products/" + id).body().path("images")).hasSize(1);
+      deliver(new Product.Updated(id, "Phone", "d", List.of(), 3));
+      assertThat(get("/catalog/products/" + id).body().path("images").isArray()).isTrue();
+      assertThat(get("/catalog/products/" + id).body().path("images")).isEmpty();
+
+      boolean inTheFeed = false;
+      for (JsonNode item : get("/catalog/products?size=100").body().path("items")) {
+         if (item.path("id").asText().equals(id)) {
+            inTheFeed = item.path("images").isArray();
+         }
+      }
+      assertThat(inTheFeed).as("the feed carries images too").isTrue();
    }
 
    @Test
@@ -199,7 +224,7 @@ class CatalogIntegrationTest {
       assertThat(ids(get("/catalog/products?size=100").body())).contains(id);
 
       deliver(new Product.Deleted(id, 2));
-      deliver(new Product.Updated(id, "Back?", "late", 9));
+      deliver(new Product.Updated(id, "Back?", "late", List.of(), 9));
 
       assertThat(ids(get("/catalog/products?size=100").body())).doesNotContain(id);
       assertThat(get("/catalog/products/" + id).status()).isEqualTo(404);
@@ -212,7 +237,7 @@ class CatalogIntegrationTest {
       newSku(id, "sku-" + UUID.randomUUID(), "5.00", 3, 1);
       assertThat(get("/catalog/products/" + id).status()).isEqualTo(404);
 
-      deliver(new Product.Created(id, "seller-1", "Late bloomer", "d", new BigDecimal("6.00"), 1));
+      deliver(new Product.Created(id, "seller-1", "Late bloomer", "d", new BigDecimal("6.00"), List.of(), 1));
 
       Reply reply = get("/catalog/products/" + id);
       assertThat(reply.status()).isEqualTo(200);
@@ -247,8 +272,8 @@ class CatalogIntegrationTest {
       String sku1 = "sku-" + UUID.randomUUID();
       String sku2 = "sku-" + UUID.randomUUID();
       List<DomainEvent> events = List.of(
-            new Product.Created(id, "seller-1", "Busy", "d", new BigDecimal("9.00"), 1),
-            new Product.Updated(id, "Busy v2", "d2", 2),
+            new Product.Created(id, "seller-1", "Busy", "d", new BigDecimal("9.00"), List.of(), 1),
+            new Product.Updated(id, "Busy v2", "d2", List.of(), 2),
             new Sku.Created(sku1, id, "seller-1", new BigDecimal("8.00"), Map.of(), 1),
             new Sku.Created(sku2, id, "seller-1", new BigDecimal("7.00"), Map.of(), 1),
             new Inventory.StockAdded(sku1, 3, 3, 3, 1),

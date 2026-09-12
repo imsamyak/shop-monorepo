@@ -9,6 +9,11 @@ spring:
     hibernate:
       ddl-auto: validate
 
+listing:
+  images:
+    # only files uploaded through the asset service can be attached to a product
+    allowed-prefixes: ${LISTING_IMAGE_PREFIXES:https://shop-catalog-sk.s3.ap-south-1.amazonaws.com/images/}
+
 ecom:
   security:
     jwt:

@@ -6,16 +6,19 @@ import com.ecom.shared.validation.OptionalText;
 import com.ecom.shared.validation.RequiredText;
 import org.openapitools.jackson.nullable.JsonNullable;
 
+import java.util.List;
 import java.util.UUID;
 
 public record UpdateProductRequest(
    long version,
    @RequiredText(min = 5, max = 50) String title,
-   JsonNullable<@OptionalText(max = 200) String> description
+   JsonNullable<@OptionalText(max = 200) String> description,
+   JsonNullable<List<String>> images
 ) {
 
    public UpdateProductRequest {
       description = description != null ? description : JsonNullable.undefined();
+      images = images != null ? images : JsonNullable.undefined();
    }
 
    public UpdateProductCmd toCommand(UUID id) {
@@ -23,7 +26,8 @@ public record UpdateProductRequest(
          id,
          this.version,
          this.title,
-         Patch.from(this.description)
+         Patch.from(this.description),
+         Patch.from(this.images)
       );
    }
 }

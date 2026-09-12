@@ -25,6 +25,7 @@ public class UpdateProductService implements UpdateProductUseCase {
    private final UpdateProductPort updateProductPort;
    private final ProductMapper productMapper;
    private final EntityVersionValidator versionValidator;
+   private final ImageUrlPolicy imageUrlPolicy;
 
    @Override
    @Transactional
@@ -34,6 +35,7 @@ public class UpdateProductService implements UpdateProductUseCase {
 
       OwnershipGuard.requireSellerOr(product.getSellerId(), UserRole.ROLE_ADMIN);
       versionValidator.validate(product, cmd.version());
+      cmd.images().ifSpecified(imageUrlPolicy::check);
 
       productMapper.updateEntity(product, cmd);
       return productMapper.toResult(updateProductPort.save(product));
@@ -48,6 +50,7 @@ public class UpdateProductService implements UpdateProductUseCase {
           data.id().toString(),
           data.title(),
           data.description(),
+          data.images(),
           data.version()
       );
    }

@@ -20,11 +20,13 @@ public class CreateProductService implements CreateProductUseCase {
 
    private final SaveProductPort saveProductPort;
    private final ProductMapper productMapper;
+   private final ImageUrlPolicy imageUrlPolicy;
 
    @Override
    @Transactional
    public ProductResult execute(CreateProductCmd cmd) {
-      Product product = Product.of(cmd.sellerId(), cmd.title(), cmd.description(), cmd.defaultPrice());
+      imageUrlPolicy.check(cmd.images());
+      Product product = Product.of(cmd.sellerId(), cmd.title(), cmd.description(), cmd.defaultPrice(), cmd.images());
       return productMapper.toResult(saveProductPort.save(product));
    }
 
@@ -39,6 +41,7 @@ public class CreateProductService implements CreateProductUseCase {
           data.title(),
           data.description(),
           data.defaultPrice(),
+          data.images(),
           data.version()
       );
    }

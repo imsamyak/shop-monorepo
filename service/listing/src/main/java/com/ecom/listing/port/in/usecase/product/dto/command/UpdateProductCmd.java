@@ -6,6 +6,7 @@ import com.ecom.shared.validation.RequiredText;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
+import java.util.List;
 import java.util.UUID;
 
 @Builder
@@ -13,10 +14,12 @@ public record UpdateProductCmd(
    @NotNull UUID id,
    long version,
    @RequiredText(min = 5, max = 50) String title,
-   Patch<@OptionalText(max = 200) String> description
+   Patch<@OptionalText(max = 200) String> description,
+   Patch<List<String>> images
 ) {
 
    public UpdateProductCmd {
       description = description != null ? description : Patch.undefined();
+      images = images != null ? images : Patch.undefined();
    }
 }

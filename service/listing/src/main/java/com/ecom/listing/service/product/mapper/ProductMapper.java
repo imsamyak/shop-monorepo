@@ -19,12 +19,16 @@ public interface ProductMapper {
 
    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
    @Mapping(target = "description", ignore = true)
+   @Mapping(target = "images", ignore = true)
    void updateEntity(@MappingTarget Product product, UpdateProductCmd cmd);
 
    @AfterMapping
    default void applyDescription(@MappingTarget Product product, UpdateProductCmd cmd) {
       if (cmd.description() != null) {
          cmd.description().ifSpecified(product::setDescription);
+      }
+      if (cmd.images() != null) {
+         cmd.images().ifSpecified(product::setImages);
       }
    }
 

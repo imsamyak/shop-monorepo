@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -59,12 +61,27 @@ public class Product extends DomainEntity {
    @Column(name = "default_price")
    private BigDecimal defaultPrice;
 
-   @Builder
+   /**
+    * The pictures of the product in display order (the first is the main one), as addresses.
+    */
+   @ElementCollection(fetch = FetchType.EAGER)
+   @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+   @OrderColumn(name = "position")
+   @Column(name = "url", nullable = false, length = 500)
+   private List<String> images = new ArrayList<>();
+
    public static Product of(UUID sellerId, String title, String description, BigDecimal defaultPrice) {
+      return of(sellerId, title, description, defaultPrice, List.of());
+   }
+
+   @Builder
+   public static Product of(UUID sellerId, String title, String description, BigDecimal defaultPrice, List<String> images) {
       if (sellerId == null) {
          throw BusinessRuleException.of("A product must belong to a seller");
       }
-      return new Product(null, sellerId, title, description, defaultPrice);
+      Product product = new Product(null, sellerId, title, description, defaultPrice, new ArrayList<>());
+      product.setImages(images);
+      return product;
    }
 
    public Product setTitle(String title) {
@@ -74,6 +91,17 @@ public class Product extends DomainEntity {
 
    public Product setDescription(String description) {
       this.description = description;
+      return this;
+   }
+
+   /**
+    * Replaces the pictures; the order of the given list is the display order. {@code null} means none.
+    */
+   public Product setImages(List<String> images) {
+      this.images.clear();
+      if (images != null) {
+         this.images.addAll(images);
+      }
       return this;
    }
 

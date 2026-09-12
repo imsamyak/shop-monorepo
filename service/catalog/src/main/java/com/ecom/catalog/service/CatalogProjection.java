@@ -44,7 +44,7 @@ public class CatalogProjection {
    }
 
    public void apply(Product.Updated event) {
-      updateProduct(event.productId(), product -> product.applyUpdated(event.title(), event.description(), event.version()));
+      updateProduct(event.productId(), product -> product.applyUpdated(event.title(), event.description(), event.images(), event.version()));
    }
 
    public void apply(Product.Deleted event) {

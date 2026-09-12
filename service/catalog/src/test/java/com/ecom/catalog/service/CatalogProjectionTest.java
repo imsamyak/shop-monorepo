@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +42,7 @@ class CatalogProjectionTest {
    }
 
    private static Product.Created created(String id, long version) {
-      return new Product.Created(id, "seller-1", "Phone " + version, "A phone", new BigDecimal("500.00"), version);
+      return new Product.Created(id, "seller-1", "Phone " + version, "A phone", new BigDecimal("500.00"), List.of(), version);
    }
 
    private static Sku.Created skuCreated(String skuId, String productId, String price, long version) {
@@ -69,6 +70,32 @@ class CatalogProjectionTest {
       }
 
       @Test
+      void imagesKeepTheOrderOfTheLatestEventAndOlderOnesAreIgnored() {
+         projection.apply(new Product.Created("p1", "seller-1", "Phone 1", "A phone", new BigDecimal("500.00"),
+            List.of("https://f.example.com/a.png", "https://f.example.com/b.png", "https://f.example.com/c.png"), 1));
+         assertThat(product("p1").images()).containsExactly(
+            "https://f.example.com/a.png", "https://f.example.com/b.png", "https://f.example.com/c.png");
+
+         projection.apply(new Product.Updated("p1", "Phone 2", "d", List.of("https://f.example.com/c.png", "https://f.example.com/a.png"), 2));
+         assertThat(product("p1").images()).as("the new list replaces the old, in its order")
+            .containsExactly("https://f.example.com/c.png", "https://f.example.com/a.png");
+
+         projection.apply(new Product.Updated("p1", "Late", "d", List.of("https://f.example.com/x.png"), 1));
+         assertThat(product("p1").images()).as("a late older event changes nothing")
+            .containsExactly("https://f.example.com/c.png", "https://f.example.com/a.png");
+
+         projection.apply(new Product.Updated("p1", "Phone 3", "d", List.of(), 3));
+         assertThat(product("p1").images()).isEmpty();
+      }
+
+      @Test
+      void aMissingImageListMeansNoImages() {
+         projection.apply(new Product.Created("p1", "seller-1", "Phone 1", "A phone", new BigDecimal("500.00"), null, 1));
+
+         assertThat(product("p1").images()).isNotNull().isEmpty();
+      }
+
+      @Test
       void aDuplicateDeliveryChangesNothingAndNeverMovesCreatedAt() {
          projection.apply(created("p1", 1));
          int saves = store.productSaves;
@@ -83,9 +110,9 @@ class CatalogProjectionTest {
       @Test
       void aNewerUpdateIsAppliedAndAnOlderOrRepeatedOneIgnored() {
          projection.apply(created("p1", 1));
-         projection.apply(new Product.Updated("p1", "Phone v3", "newer", 3));
-         projection.apply(new Product.Updated("p1", "Phone v2", "late", 2));
-         projection.apply(new Product.Updated("p1", "Phone v3 again", "same version", 3));
+         projection.apply(new Product.Updated("p1", "Phone v3", "newer", List.of(), 3));
+         projection.apply(new Product.Updated("p1", "Phone v2", "late", List.of(), 2));
+         projection.apply(new Product.Updated("p1", "Phone v3 again", "same version", List.of(), 3));
 
          assertThat(product("p1").title()).isEqualTo("Phone v3");
          assertThat(product("p1").description()).isEqualTo("newer");
@@ -94,7 +121,7 @@ class CatalogProjectionTest {
 
       @Test
       void anUpdateThatArrivesBeforeTheCreationKeepsItsTextButTheCreationStillSuppliesTheRest() {
-         projection.apply(new Product.Updated("p1", "Phone v2", "updated", 2));
+         projection.apply(new Product.Updated("p1", "Phone v2", "updated", List.of(), 2));
          assertThat(product("p1").visible()).as("not shown before Created").isFalse();
 
          now = T0.plusSeconds(5);
@@ -111,10 +138,10 @@ class CatalogProjectionTest {
       @Test
       void aDeletionIsFinalWhateverItsVersionAndNoLateEventBringsTheProductBack() {
          projection.apply(created("p1", 1));
-         projection.apply(new Product.Updated("p1", "Phone v5", "x", 5));
+         projection.apply(new Product.Updated("p1", "Phone v5", "x", List.of(), 5));
 
          projection.apply(new Product.Deleted("p1", 2));
-         projection.apply(new Product.Updated("p1", "Phone v9", "late", 9));
+         projection.apply(new Product.Updated("p1", "Phone v9", "late", List.of(), 9));
          projection.apply(created("p1", 10));
 
          CatalogProduct p = product("p1");
@@ -306,7 +333,7 @@ class CatalogProjectionTest {
       void everyOrderOfTheSameEventsEndsInTheSameProduct() {
          Runnable[] events = {
                () -> projection.apply(created("p1", 1)),
-               () -> projection.apply(new Product.Updated("p1", "Phone v2", "two", 2)),
+               () -> projection.apply(new Product.Updated("p1", "Phone v2", "two", List.of(), 2)),
                () -> projection.apply(skuCreated("s1", "p1", "450.00", 1)),
                () -> projection.apply(new Sku.Updated("s1", "p1", new BigDecimal("430.00"), Map.of("color", "red"), 2)),
                () -> stock("s1", 5, 1),

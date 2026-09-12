@@ -8,6 +8,11 @@ spring:
     hibernate:
       ddl-auto: update
 
+listing:
+  images:
+    # only files uploaded through the asset service (local S3 stand-in) can be attached to a product
+    allowed-prefixes: ${LISTING_IMAGE_PREFIXES:http://localhost:9090/ecom-assets/images/}
+
 ecom:
   security:
     jwt:

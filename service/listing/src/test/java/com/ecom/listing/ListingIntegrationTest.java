@@ -193,6 +193,82 @@ class ListingIntegrationTest {
       assertThat(response.headers().firstValue("Access-Control-Allow-Origin")).as("the browser may read the 401").contains("https://shop.example.com");
    }
 
+   // ------------------------------------------------------------ images
+
+   private static String img(String name) {
+      return "https://files.example.com/images/u-1/" + name + ".png";
+   }
+
+   private static String json(String... urls) {
+      return "[" + java.util.Arrays.stream(urls).map(u -> "\"" + u + "\"").collect(java.util.stream.Collectors.joining(",")) + "]";
+   }
+
+   private static java.util.List<String> texts(JsonNode array) {
+      java.util.List<String> values = new java.util.ArrayList<>();
+      array.forEach(node -> values.add(node.asText()));
+      return values;
+   }
+
+   @Test
+   void imagesKeepTheOrderGivenAndAreReplacedClearedOrLeftAlone() throws Exception {
+      UUID seller = newSeller();
+      Reply created = call("POST", "/products", "{\"title\":\"Laptop Pro\",\"description\":\"d\",\"defaultPrice\":10.00,\"images\":"
+         + json(img("c"), img("a"), img("b")) + "}", TestTokens.seller(seller));
+      String id = created.text("id");
+
+      assertThat(created.status()).isEqualTo(201);
+      assertThat(texts(created.body().path("images"))).containsExactly(img("c"), img("a"), img("b"));
+      assertThat(texts(call("GET", "/products/" + id, null, null).body().path("images"))).as("read back in the same order")
+         .containsExactly(img("c"), img("a"), img("b"));
+
+      Reply replaced = call("PATCH", "/products/" + id, "{\"version\":0,\"title\":\"Laptop Pro\",\"images\":" + json(img("b"), img("c")) + "}");
+      assertThat(texts(replaced.body().path("images"))).containsExactly(img("b"), img("c"));
+
+      Reply untouched = call("PATCH", "/products/" + id, "{\"version\":1,\"title\":\"Laptop Pro 2\"}");
+      assertThat(texts(untouched.body().path("images"))).as("not mentioned means unchanged").containsExactly(img("b"), img("c"));
+
+      Reply cleared = call("PATCH", "/products/" + id, "{\"version\":2,\"title\":\"Laptop Pro 2\",\"images\":null}");
+      assertThat(cleared.body().path("images")).isEmpty();
+
+      java.util.List<JsonNode> events = new java.util.ArrayList<>();
+      for (String payload : jdbc.queryForList("select payload from outbox_events where aggregate_type = 'product' and aggregate_id = ? order by created_at",
+         String.class, id)) {
+         events.add(JSON.readTree(payload));
+      }
+      assertThat(texts(events.get(0).path("data").path("images"))).containsExactly(img("c"), img("a"), img("b"));
+      assertThat(texts(events.get(1).path("data").path("images"))).containsExactly(img("b"), img("c"));
+      assertThat(events.get(events.size() - 1).path("data").path("images")).isEmpty();
+   }
+
+   @Test
+   void aProductWithoutImagesHasAnEmptyList() throws Exception {
+      Reply created = createProduct(newSeller(), "Laptop Pro");
+
+      assertThat(created.body().path("images").isArray()).isTrue();
+      assertThat(created.body().path("images")).isEmpty();
+   }
+
+   @Test
+   void theImageListIsValidated() throws Exception {
+      String token = TestTokens.seller(newSeller());
+      String base = "{\"title\":\"Laptop Pro\",\"description\":\"d\",\"defaultPrice\":10.00,\"images\":";
+      String[] eleven = new String[11];
+      for (int i = 0; i < eleven.length; i++) {
+         eleven[i] = img("p" + i);
+      }
+
+      assertThat(call("POST", "/products", base + json(eleven) + "}", token).status()).as("more than 10").isEqualTo(400);
+      assertThat(call("POST", "/products", base + json(img("a"), img("a")) + "}", token).status()).as("twice").isEqualTo(400);
+      assertThat(call("POST", "/products", base + json("ftp://files.example.com/a.png") + "}", token).status()).isEqualTo(400);
+      assertThat(call("POST", "/products", base + json("not a url") + "}", token).status()).isEqualTo(400);
+      assertThat(call("POST", "/products", base + json("") + "}", token).status()).isEqualTo(400);
+      assertThat(call("POST", "/products", base + json("https://files.example.com/" + "x".repeat(500)) + "}", token).status()).as("too long").isEqualTo(400);
+      assertThat(call("POST", "/products", base + json(java.util.Arrays.copyOf(eleven, 10)) + "}", token).status()).isEqualTo(201);
+
+      String id = createProduct(newSeller(), "Phone Max").text("id");
+      assertThat(call("PATCH", "/products/" + id, "{\"version\":0,\"title\":\"Phone Max\",\"images\":" + json(img("a"), img("a")) + "}").status()).isEqualTo(400);
+   }
+
    @Test
    void readingIsPublic() throws Exception {
       String productId = createProduct(newSeller(), "Laptop Pro").text("id");

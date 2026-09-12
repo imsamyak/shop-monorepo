@@ -12,6 +12,7 @@ public record ProductResponse(
    String title,
    String description,
    BigDecimal defaultPrice,
+   List<String> images,
    long version,
    List<Long> deletedSkuIds
 ) {
@@ -25,6 +26,7 @@ public record ProductResponse(
          result.title(),
          result.description(),
          result.defaultPrice(),
+         result.images(),
          result.version(),
          result.deletedSkuIds()
       );
