@@ -1,0 +1,4 @@
+# build output and IDE files
+target/
+.idea/
+*.iml

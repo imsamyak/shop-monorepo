@@ -1,4 +1,11 @@
-# build output and IDE files
+# build output, dependencies and IDE files
 target/
+node_modules/
+dist/
+.next/
 .idea/
 *.iml
+.claude/
+.env
+.env.*
+!.env.example
