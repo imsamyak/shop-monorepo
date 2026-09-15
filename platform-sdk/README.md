@@ -1,6 +1,6 @@
-# @ecom/service-sdk
+# @shop/platform-sdk
 
-Typed TypeScript client for the ecom services (identity, catalog, listing, checkout, order, inventory, asset). Every endpoint
+Typed TypeScript client for the shop platform (identity, catalog, listing, checkout, order, inventory, asset). Every endpoint
 is a **use case**: a small object with its service, method, path, validators for params / query / body, and whether it
 needs an access token. The SDK is built from use cases with a builder.
 
@@ -11,7 +11,7 @@ can live in their own cookie. With Nuxt, the context is the `H3Event`:
 
 ```ts
 // server/utils/sdk.ts
-import { createEcomSdk } from '@ecom/service-sdk';
+import { createEcomSdk } from '@shop/platform-sdk';
 import { type H3Event, getCookie, setCookie, deleteCookie } from 'h3';
 
 export const sdk = createEcomSdk<H3Event>({
@@ -54,7 +54,7 @@ Requests, responses and names are type-checked either way.
 Make your own gateways with the builder:
 
 ```ts
-import { SdkBuilder, cartUseCases, getOrder } from '@ecom/service-sdk';
+import { SdkBuilder, cartUseCases, getOrder } from '@shop/platform-sdk';
 
 const sdk = SdkBuilder.create<H3Event>({ tokenStore })
   .addGateway('basket', cartUseCases)

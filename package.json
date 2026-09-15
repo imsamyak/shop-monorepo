@@ -1,0 +1,13 @@
+{
+  "name": "shop-monorepo",
+  "private": true,
+  "description": "The shop: the platform (Maven, Java), the platform SDK and the storefront (TypeScript)",
+  "packageManager": "pnpm@11.4.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test"
+  }
+}

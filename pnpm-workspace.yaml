@@ -1,0 +1,6 @@
+packages:
+  - platform-sdk
+  - storefront/client/apps/*
+  - storefront/client/packages/*
+  - storefront/server/services/*
+  - storefront/server/packages/*
