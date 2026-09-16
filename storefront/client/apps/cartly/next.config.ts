@@ -1,0 +1,14 @@
+import path from 'node:path';
+import type { NextConfig } from 'next';
+
+// The app lives four folders below the workspace root and uses packages from outside its own folder.
+const workspaceRoot = path.join(__dirname, '../../../..');
+
+const nextConfig: NextConfig = {
+  turbopack: { root: workspaceRoot },
+  outputFileTracingRoot: workspaceRoot,
+  // A seller uploads up to ten pictures of 5 MB through a server action.
+  experimental: { serverActions: { bodySizeLimit: '60mb' } },
+};
+
+export default nextConfig;
