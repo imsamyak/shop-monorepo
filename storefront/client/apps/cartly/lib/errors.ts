@@ -6,6 +6,8 @@ export function errorMessage(error: unknown): string {
     const fields = Object.entries(error.invalidFields).map(([field, message]) => `${field} ${message}`);
     if (fields.length) return fields.join(', ');
   }
+  // The buyer sees a short message; the details stay in the server log.
+  if (!(error instanceof SdkValidationError)) console.error('[cartly]', error);
   if (error instanceof SdkHttpError) {
     if (error.status === 401) return 'Wrong email or password.';
     if (error.status === 409) return 'This changed in the meantime. Please try again.';

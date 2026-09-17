@@ -20,6 +20,7 @@ export const createProduct = useCase('CreateProduct')
   .post('/products')
   .body(createProductBody)
   .returns<ProductResponse>()
+  .authRequired()
   .build();
 
 export const listProducts = useCase('ListProducts')
@@ -42,6 +43,7 @@ export const updateProduct = useCase('UpdateProduct')
   .params(productParams)
   .body(updateProductBody)
   .returns<ProductResponse>()
+  .authRequired()
   .build();
 
 /** The backend handles PUT exactly like PATCH. */
@@ -51,6 +53,7 @@ export const replaceProduct = useCase('ReplaceProduct')
   .params(productParams)
   .body(updateProductBody)
   .returns<ProductResponse>()
+  .authRequired()
   .build();
 
 export const deleteProduct = useCase('DeleteProduct')
@@ -59,6 +62,7 @@ export const deleteProduct = useCase('DeleteProduct')
   .params(productParams)
   .query(versionQuery)
   .returns<ProductResponse>()
+  .authRequired()
   .build();
 
 export const listSkus = useCase('ListSkus')
@@ -81,6 +85,7 @@ export const createSku = useCase('CreateSku')
   .params(skusParams)
   .body(createSkuBody)
   .returns<SkuResponse>()
+  .authRequired()
   .build();
 
 export const updateSku = useCase('UpdateSku')
@@ -89,6 +94,7 @@ export const updateSku = useCase('UpdateSku')
   .params(skuParams)
   .body(updateSkuBody)
   .returns<SkuResponse>()
+  .authRequired()
   .build();
 
 export const deleteSku = useCase('DeleteSku')
@@ -97,6 +103,7 @@ export const deleteSku = useCase('DeleteSku')
   .params(skuParams)
   .query(versionQuery)
   .returns<SkuResponse>()
+  .authRequired()
   .build();
 
 export const listingUseCases = [

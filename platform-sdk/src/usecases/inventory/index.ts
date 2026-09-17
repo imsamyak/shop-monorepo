@@ -23,6 +23,7 @@ export const getInventory = useCase('GetInventory')
   .get('/inventory/{skuId}')
   .params(skuParams)
   .returns<InventoryResponse>()
+  .authRequired()
   .build();
 
 /** Paged, sorted by SKU id. Same endpoint as `GetInventories`, which passes `skuIds`. */
@@ -31,6 +32,7 @@ export const listInventory = useCase('ListInventory')
   .get('/inventory')
   .query(listInventoryQuery)
   .returns<InventoryPageResponse>()
+  .authRequired()
   .build();
 
 /** Bulk lookup, unpaged. Same endpoint as `ListInventory`; `skuIds` is what selects this behaviour. */
@@ -39,6 +41,7 @@ export const getInventories = useCase('GetInventories')
   .get('/inventory')
   .query(getInventoriesQuery)
   .returns<InventoriesResponse>()
+  .authRequired()
   .build();
 
 export const addStock = useCase('AddStock')
@@ -47,6 +50,7 @@ export const addStock = useCase('AddStock')
   .params(skuParams)
   .body(stockQuantityBody)
   .returns<InventoryResponse>()
+  .authRequired()
   .build();
 
 export const removeStock = useCase('RemoveStock')
@@ -55,6 +59,7 @@ export const removeStock = useCase('RemoveStock')
   .params(skuParams)
   .body(stockQuantityBody)
   .returns<InventoryResponse>()
+  .authRequired()
   .build();
 
 /** Sets the total quantity on hand. */
@@ -64,6 +69,7 @@ export const adjustStock = useCase('AdjustStock')
   .params(skuParams)
   .body(adjustStockBody)
   .returns<InventoryResponse>()
+  .authRequired()
   .build();
 
 export const getReservation = useCase('GetReservation')
@@ -71,6 +77,7 @@ export const getReservation = useCase('GetReservation')
   .get('/inventory/reservations/{reservationId}')
   .params(reservationParams)
   .returns<ReservationResponse>()
+  .authRequired()
   .build();
 
 export const listReservations = useCase('ListReservations')
@@ -78,6 +85,7 @@ export const listReservations = useCase('ListReservations')
   .get('/inventory/reservations')
   .query(listReservationsQuery)
   .returns<ReservationListResponse>()
+  .authRequired()
   .build();
 
 export const inventoryUseCases = [

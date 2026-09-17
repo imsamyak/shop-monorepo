@@ -1170,7 +1170,7 @@
           }
         },
         {
-          "usecase": "SetTotalStock",
+          "usecase": "AdjustStock",
           "api": "POST /inventory/{skuId}/stock",
           "query": {},
           "params": {

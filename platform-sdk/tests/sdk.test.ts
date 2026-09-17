@@ -33,14 +33,14 @@ describe('request building', () => {
     const cart = { customerId: CUSTOMER, items: [{ skuId: 7, quantity: 2 }], version: 1, updatedAt: 'now' };
     const fake = fakeFetch(200, cart);
 
-    const result = await sdkWith(fake).with({}).cart.addCartItem({ customerId: CUSTOMER, skuId: 7, quantity: 2 });
+    const result = await sdkWith(fake).with({ token: 't' }).cart.addCartItem({ customerId: CUSTOMER, skuId: 7, quantity: 2 });
 
     expect(result).toEqual(cart);
     expect(fake.requests).toEqual([
       {
         url: `http://checkout/carts/${CUSTOMER}/items`,
         method: 'POST',
-        headers: { accept: 'application/json', 'content-type': 'application/json' },
+        headers: { accept: 'application/json', authorization: 'Bearer t', 'content-type': 'application/json' },
         body: { skuId: 7, quantity: 2 },
       },
     ]);
@@ -48,7 +48,7 @@ describe('request building', () => {
 
   it('puts non-path fields in the query on GET and DELETE', async () => {
     const fake = fakeFetch(200, { items: [] });
-    const { inventory, cart, products } = sdkWith(fake).with({});
+    const { inventory, cart, products } = sdkWith(fake).with({ token: 't' });
 
     await inventory.getInventories({ skuIds: [1, 2] });
     await cart.removeCartItem({ customerId: CUSTOMER, skuId: 3, version: 4 });
@@ -63,7 +63,7 @@ describe('request building', () => {
 
   it('sends an empty JSON body when every body field is optional', async () => {
     const fake = fakeFetch(201, {});
-    await sdkWith(fake).with({}).products.createSku({ productId: CUSTOMER });
+    await sdkWith(fake).with({ token: 't' }).products.createSku({ productId: CUSTOMER });
     expect(fake.requests[0]?.body).toEqual({});
   });
 
@@ -74,7 +74,7 @@ describe('request building', () => {
 
   it('reaches the same use cases through execute', async () => {
     const fake = fakeFetch(200, {});
-    await sdkWith(fake).execute('GetCart', { customerId: CUSTOMER }, {});
+    await sdkWith(fake).execute('GetCart', { customerId: CUSTOMER }, { token: 't' });
     expect(fake.requests[0]?.url).toBe(`http://checkout/carts/${CUSTOMER}`);
   });
 });
@@ -155,10 +155,10 @@ describe('access token', () => {
 
   it('sends the stored token only to use cases that require it', async () => {
     const fake = fakeFetch(200, {});
-    const { auth, cart } = sdkWith(fake).with({ token: 'tok-1' });
+    const { auth, products } = sdkWith(fake).with({ token: 'tok-1' });
 
     await auth.getCurrentUser();
-    await cart.getCart({ customerId: CUSTOMER });
+    await products.listProducts();
 
     expect(fake.requests[0]?.headers.authorization).toBe('Bearer tok-1');
     expect(fake.requests[1]?.headers.authorization).toBeUndefined();
@@ -192,7 +192,7 @@ describe('validation', () => {
   it('rejects bad path params in every mode, before sending', async () => {
     const fake = fakeFetch(200, {});
     const error = await sdkWith(fake, 'off')
-      .with({})
+      .with({ token: 't' })
       .cart.getCart({ customerId: 'not-a-uuid' })
       .then(unexpected, (e: unknown) => e as SdkValidationError);
 
@@ -213,13 +213,13 @@ describe('validation', () => {
   it('leaves body limits to the backend in shape mode but still checks types and unknown keys', async () => {
     const big = { customerId: CUSTOMER, skuId: 1, quantity: 5000 };
 
-    await expect(sdkWith(fakeFetch(200, {}), 'shape').with({}).cart.addCartItem(big)).resolves.toEqual({});
-    await expect(sdkWith(fakeFetch(200, {}), 'strict').with({}).cart.addCartItem(big)).rejects.toBeInstanceOf(
+    await expect(sdkWith(fakeFetch(200, {}), 'shape').with({ token: 't' }).cart.addCartItem(big)).resolves.toEqual({});
+    await expect(sdkWith(fakeFetch(200, {}), 'strict').with({ token: 't' }).cart.addCartItem(big)).rejects.toBeInstanceOf(
       SdkValidationError,
     );
 
     const typo = { customerId: CUSTOMER, skuId: 1, quantity: 1, quantiy: 2 };
-    await expect(sdkWith(fakeFetch(200, {}), 'shape').with({}).cart.addCartItem(typo)).rejects.toBeInstanceOf(
+    await expect(sdkWith(fakeFetch(200, {}), 'shape').with({ token: 't' }).cart.addCartItem(typo)).rejects.toBeInstanceOf(
       SdkValidationError,
     );
   });
@@ -233,14 +233,14 @@ describe('validation', () => {
 
   it('keeps bounds of 0 and 1 in shape mode', async () => {
     const zero = { customerId: CUSTOMER, skuId: 1, quantity: 0 };
-    await expect(sdkWith(fakeFetch(200, {}), 'shape').with({}).cart.addCartItem(zero)).rejects.toBeInstanceOf(
+    await expect(sdkWith(fakeFetch(200, {}), 'shape').with({ token: 't' }).cart.addCartItem(zero)).rejects.toBeInstanceOf(
       SdkValidationError,
     );
   });
 
   it('sends the body as given when validation is off', async () => {
     const fake = fakeFetch(200, {});
-    await sdkWith(fake, 'off').with({}).inventory.addStock({ skuId: 1, quantity: -5 });
+    await sdkWith(fake, 'off').with({ token: 't' }).inventory.addStock({ skuId: 1, quantity: -5 });
     expect(fake.requests[0]?.body).toEqual({ quantity: -5 });
   });
 });
@@ -249,7 +249,7 @@ describe('errors', () => {
   it('wraps a non-2xx answer with the backend error body', async () => {
     const body = { status: 409, errorCode: 'VERSION_CONFLICT', detail: 'stale' };
     const error = await sdkWith(fakeFetch(409, body))
-      .with({})
+      .with({ token: 't' })
       .cart.getCart({ customerId: CUSTOMER })
       .then(unexpected, (e: unknown) => e as SdkHttpError);
 
@@ -266,7 +266,7 @@ describe('errors', () => {
         throw new TypeError('connection refused');
       },
     });
-    await expect(sdk.with({}).orders.getOrder({ orderId: CUSTOMER })).rejects.toBeInstanceOf(SdkNetworkError);
+    await expect(sdk.with({ token: 't' }).orders.getOrder({ orderId: CUSTOMER })).rejects.toBeInstanceOf(SdkNetworkError);
   });
 });
 

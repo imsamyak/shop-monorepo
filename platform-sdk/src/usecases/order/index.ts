@@ -9,6 +9,7 @@ export const getOrder = useCase('GetOrder')
   .get('/orders/{orderId}')
   .params(orderParams)
   .returns<OrderResponse>()
+  .authRequired()
   .build();
 
 export const listOrders = useCase('ListOrders')
@@ -16,6 +17,7 @@ export const listOrders = useCase('ListOrders')
   .get('/orders')
   .query(listOrdersQuery)
   .returns<OrdersResponse>()
+  .authRequired()
   .build();
 
 export const orderUseCases = [getOrder, listOrders] as const;

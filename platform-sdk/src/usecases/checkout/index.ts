@@ -17,6 +17,7 @@ export const getCart = useCase('GetCart')
   .get('/carts/{customerId}')
   .params(cartParams)
   .returns<CartResponse>()
+  .authRequired()
   .build();
 
 /** Adds to the quantity of an existing line. */
@@ -26,6 +27,7 @@ export const addCartItem = useCase('AddCartItem')
   .params(cartParams)
   .body(addCartItemBody)
   .returns<CartResponse>()
+  .authRequired()
   .build();
 
 export const setCartItem = useCase('SetCartItem')
@@ -34,6 +36,7 @@ export const setCartItem = useCase('SetCartItem')
   .params(cartItemParams)
   .body(setCartItemBody)
   .returns<CartResponse>()
+  .authRequired()
   .build();
 
 export const removeCartItem = useCase('RemoveCartItem')
@@ -42,6 +45,7 @@ export const removeCartItem = useCase('RemoveCartItem')
   .params(cartItemParams)
   .query(cartVersionQuery)
   .returns<CartResponse>()
+  .authRequired()
   .build();
 
 export const clearCart = useCase('ClearCart')
@@ -50,6 +54,7 @@ export const clearCart = useCase('ClearCart')
   .params(cartParams)
   .query(cartVersionQuery)
   .returns<CartResponse>()
+  .authRequired()
   .build();
 
 /** Prices and sellers are looked up server-side. */
@@ -58,6 +63,7 @@ export const draftCheckout = useCase('DraftCheckout')
   .post('/checkouts')
   .body(draftCheckoutBody)
   .returns<CheckoutResponse>()
+  .authRequired()
   .build();
 
 export const getCheckout = useCase('GetCheckout')
@@ -65,6 +71,7 @@ export const getCheckout = useCase('GetCheckout')
   .get('/checkouts/{checkoutId}')
   .params(checkoutParams)
   .returns<CheckoutResponse>()
+  .authRequired()
   .build();
 
 export const commitCheckout = useCase('CommitCheckout')
@@ -72,6 +79,7 @@ export const commitCheckout = useCase('CommitCheckout')
   .post('/checkouts/{checkoutId}/commit')
   .params(checkoutParams)
   .returns<CheckoutResponse>()
+  .authRequired()
   .build();
 
 export const cancelCheckout = useCase('CancelCheckout')
@@ -79,6 +87,7 @@ export const cancelCheckout = useCase('CancelCheckout')
   .post('/checkouts/{checkoutId}/cancel')
   .params(checkoutParams)
   .returns<CheckoutResponse>()
+  .authRequired()
   .build();
 
 export const cartUseCases = [getCart, addCartItem, setCartItem, removeCartItem, clearCart] as const;
