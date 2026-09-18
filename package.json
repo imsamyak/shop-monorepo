@@ -1,7 +1,7 @@
 {
   "name": "shop-monorepo",
   "private": true,
-  "description": "The shop: the platform (Maven, Java), the platform SDK and the storefront (TypeScript)",
+  "description": "The shop: the server (Java platform, chat-bot) and the client (SDKs, packages, Next.js apps)",
   "packageManager": "pnpm@11.4.0",
   "engines": {
     "node": ">=20"
