@@ -1,0 +1,30 @@
+{
+  "note": "Every error is {error}. Send the customer's access token (the one the identity service issued) as 'Authorization: Bearer <accessToken>'; the chatbot passes it on to the platform services, so the customer only ever sees their own cart and orders. 401 = no token, an unreadable one, or one the platform rejected. Conversations are kept in memory per customer and sessionId and are forgotten after an hour idle or on restart.",
+  "services": {
+    "chatbot": {
+      "baseUrl": "http://localhost:4001",
+      "endpoints": [
+        {
+          "usecase": "Chat",
+          "api": "POST /api/chat",
+          "query": {},
+          "params": {},
+          "body": {
+            "message": "string (max 2000)",
+            "sessionId": "string (max 100; any id the app picks for one conversation, for example a UUID)"
+          },
+          "response": {
+            "status": 200,
+            "body": {
+              "reply": "string"
+            }
+          },
+          "auth": {
+            "required": true,
+            "role": null
+          }
+        }
+      ]
+    }
+  }
+}

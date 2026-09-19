@@ -3,3 +3,7 @@ packages:
   - client/packages/*
   - client/apps/*
   - server/chatbot
+allowBuilds:
+  '@google/genai': false
+  onnxruntime-node: true
+  protobufjs: false

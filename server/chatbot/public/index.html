@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- A tiny test page to chat with the bot. Open http://localhost:4001 after `pnpm start`. -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Shop Chatbot</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+    #log { border: 1px solid #ccc; height: 400px; overflow-y: auto; padding: 10px; }
+    .user { text-align: right; color: #0645ad; }
+    .bot { white-space: pre-wrap; }
+    form { display: flex; gap: 8px; margin-top: 10px; }
+    input[name=msg] { flex: 1; }
+  </style>
+</head>
+<body>
+  <h2>Shop Chatbot</h2>
+  <label>Access token: <input id="token" size="38" placeholder="paste a customer access token"></label>
+  <div id="log"></div>
+  <form id="form">
+    <input name="msg" placeholder="Ask something..." autocomplete="off">
+    <button>Send</button>
+  </form>
+
+  <script>
+    const sessionId = crypto.randomUUID(); // one conversation per page load
+    const log = document.getElementById("log");
+
+    function show(text, who) {
+      const p = document.createElement("p");
+      p.className = who;
+      p.textContent = text;
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    document.getElementById("form").onsubmit = async (e) => {
+      e.preventDefault();
+      const input = e.target.msg;
+      const message = input.value.trim();
+      if (!message) return;
+      input.value = "";
+      show(message, "user");
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + document.getElementById("token").value.trim(),
+        },
+        body: JSON.stringify({ message, sessionId }),
+      });
+      const data = await res.json();
+      show(data.reply || "Error: " + data.error, "bot");
+    };
+  </script>
+</body>
+</html>

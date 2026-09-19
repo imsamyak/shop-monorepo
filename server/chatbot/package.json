@@ -1,0 +1,22 @@
+{
+  "name": "@shop/chatbot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI shopping assistant (RAG + agent) for the shop platform",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "ingest": "node --env-file-if-exists=.env src/rag/ingest.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node --watch --env-file-if-exists=.env src/server.js",
+    "predev": "pnpm --filter @shop/platform-sdk build",
+    "prestart": "pnpm --filter @shop/platform-sdk build",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@google/genai": "^2.31.0",
+    "@huggingface/transformers": "^4.3.1",
+    "@shop/platform-sdk": "workspace:*",
+    "express": "^5.3.0"
+  }
+}

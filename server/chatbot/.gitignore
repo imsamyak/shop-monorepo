@@ -1,0 +1,4 @@
+node_modules
+.env
+# built by `pnpm ingest` from knowledge/
+data/index.json

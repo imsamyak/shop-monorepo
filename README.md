@@ -3,7 +3,7 @@
 ```
 server/     everything that runs on a server
   platform/       the backend: Spring Boot services and modules, built with Maven (docs/api.json lists the endpoints)
-  chatbot/        the shopping assistant (Node, Express)           (not added yet)
+  chatbot/        the shopping assistant (Node, Express)           (port 4001)
 client/     everything customers and sellers use, and the code that talks to the server
   service-sdk/    one typed client per server service
     platform/       @shop/platform-sdk, the client of server/platform
