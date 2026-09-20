@@ -1,4 +1,4 @@
-import { useCase } from '../../core/use-case-builder.js';
+import { useCase } from '@shop/sdk-core';
 import {
   createProductBody,
   createSkuBody,

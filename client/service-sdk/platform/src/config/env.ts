@@ -1,4 +1,5 @@
-import type { ServiceName } from '../core/types.js';
+/** The services the platform's use cases are sent to; each has its own base URL. */
+export type ServiceName = 'identity' | 'catalog' | 'listing' | 'checkout' | 'order' | 'inventory' | 'asset';
 
 export type BaseUrls = Record<ServiceName, string>;
 

@@ -1,3 +1,5 @@
+import { SdkBuilder, type SdkOptions } from '@shop/sdk-core';
+import { type BaseUrls, resolveBaseUrls } from '../config/env.js';
 import {
   assetUseCases,
   cartUseCases,
@@ -8,12 +10,13 @@ import {
   listingUseCases,
   orderUseCases,
 } from '../usecases/index.js';
-import { SdkBuilder } from './builder.js';
-import type { SdkOptions } from './sdk.js';
+
+/** The engine's options; `baseUrls` only overrides the addresses read from the environment. */
+export type EcomSdkOptions<Ctx> = Omit<SdkOptions<Ctx>, 'baseUrls'> & { readonly baseUrls?: Partial<BaseUrls> };
 
 /** A builder with every ecom use case in its gateway; chain more `.addGateway(...)` or call `.build()`. */
-export function ecomSdkBuilder<Ctx = undefined>(options: SdkOptions<Ctx>) {
-  return SdkBuilder.create(options)
+export function ecomSdkBuilder<Ctx = undefined>(options: EcomSdkOptions<Ctx>) {
+  return SdkBuilder.create<Ctx>({ ...options, baseUrls: resolveBaseUrls(undefined, options.baseUrls) })
     .addGateway('auth', identityUseCases)
     .addGateway('catalog', catalogUseCases)
     .addGateway('products', listingUseCases)
@@ -25,7 +28,7 @@ export function ecomSdkBuilder<Ctx = undefined>(options: SdkOptions<Ctx>) {
 }
 
 /** The SDK with every ecom use case: `const { auth, cart } = sdk.with(event)`. */
-export function createEcomSdk<Ctx = undefined>(options: SdkOptions<Ctx>) {
+export function createEcomSdk<Ctx = undefined>(options: EcomSdkOptions<Ctx>) {
   return ecomSdkBuilder(options).build();
 }
 

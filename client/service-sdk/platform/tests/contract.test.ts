@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { z } from 'zod';
-import { placeholders } from '../src/core/http.js';
+import { placeholders } from '@shop/sdk-core';
 import type { AnyUseCase } from '../src/index.js';
 import { allUseCases } from '../src/index.js';
 

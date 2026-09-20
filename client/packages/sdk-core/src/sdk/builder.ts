@@ -1,4 +1,3 @@
-import { resolveBaseUrls } from '../config/env.js';
 import type { AnyUseCase, UseCaseMap } from '../core/types.js';
 import { type GatewayMap, Sdk, type SdkOptions } from './sdk.js';
 
@@ -63,7 +62,7 @@ export class SdkBuilder<Ctx, M extends UseCaseMap = {}, G extends GatewayMap = {
     if (!fetchImpl) throw new Error('No fetch available: pass options.fetch');
     return new Sdk(this.useCases, this.gateways, {
       tokenStore: this.options.tokenStore,
-      baseUrls: resolveBaseUrls(undefined, this.options.baseUrls),
+      baseUrls: this.options.baseUrls,
       validation: this.options.validation ?? 'shape',
       fetch: fetchImpl.bind(globalThis),
       headers: this.options.headers ?? {},

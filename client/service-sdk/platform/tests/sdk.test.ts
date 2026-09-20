@@ -274,13 +274,13 @@ describe('builder', () => {
   const tokenStore = () => ctxTokenStore({});
 
   it('builds an SDK with only the use cases added', () => {
-    const sdk = SdkBuilder.create({ tokenStore }).addUseCase(getCart).addUseCase(addCartItem).build();
+    const sdk = SdkBuilder.create({ tokenStore, baseUrls: {} }).addUseCase(getCart).addUseCase(addCartItem).build();
     expect(sdk.names()).toEqual(['GetCart', 'AddCartItem']);
     expect(sdk.has('GetOrder')).toBe(false);
   });
 
   it('groups use cases into gateways, one method per use case', () => {
-    const sdk = SdkBuilder.create({ tokenStore })
+    const sdk = SdkBuilder.create({ tokenStore, baseUrls: {} })
       .addGateway('basket', [getCart, addCartItem])
       .addGateway('stock', [getInventories])
       .build();
@@ -290,10 +290,10 @@ describe('builder', () => {
   });
 
   it('rejects the same name twice', () => {
-    expect(() => SdkBuilder.create({ tokenStore }).addUseCase(getCart).addUseCase(getCart)).toThrow(/already added/);
-    expect(() => SdkBuilder.create({ tokenStore }).addGateway('a', []).addGateway('a', [])).toThrow(/already added/);
+    expect(() => SdkBuilder.create({ tokenStore, baseUrls: {} }).addUseCase(getCart).addUseCase(getCart)).toThrow(/already added/);
+    expect(() => SdkBuilder.create({ tokenStore, baseUrls: {} }).addGateway('a', []).addGateway('a', [])).toThrow(/already added/);
     const impostor = useCase('GetCart').service('order').get('/x').build();
-    expect(() => SdkBuilder.create({ tokenStore }).addGateway('a', [getCart]).addGateway('b', [impostor])).toThrow(
+    expect(() => SdkBuilder.create({ tokenStore, baseUrls: {} }).addGateway('a', [getCart]).addGateway('b', [impostor])).toThrow(
       /Another use case/,
     );
   });
@@ -314,7 +314,7 @@ describe('builder', () => {
   });
 
   it('does not change a builder that was extended', () => {
-    const base = SdkBuilder.create({ tokenStore }).addUseCase(getCart);
+    const base = SdkBuilder.create({ tokenStore, baseUrls: {} }).addUseCase(getCart);
     base.addUseCase(getInventories);
     expect(base.build().names()).toEqual(['GetCart']);
   });

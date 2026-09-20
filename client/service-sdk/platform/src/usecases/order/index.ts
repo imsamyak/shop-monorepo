@@ -1,4 +1,4 @@
-import { useCase } from '../../core/use-case-builder.js';
+import { useCase } from '@shop/sdk-core';
 import { listOrdersQuery, orderParams } from './schemas.js';
 import type { OrderResponse, OrdersResponse } from './types.js';
 

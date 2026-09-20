@@ -1,15 +1,21 @@
-import type { BaseUrls } from '../config/env.js';
 import { type ApiErrorBody, SdkAuthError, SdkHttpError, SdkNetworkError } from '../core/errors.js';
 import { fillPath, splitRequest, toQueryString } from '../core/http.js';
 import type { TokenStore, TokenStoreProvider } from '../core/token.js';
-import type { AnyUseCase, RequestArgs, UseCaseMap, UseCaseRequest, UseCaseResult } from '../core/types.js';
+import type {
+  AnyUseCase,
+  RequestArgs,
+  ServiceName,
+  UseCaseMap,
+  UseCaseRequest,
+  UseCaseResult,
+} from '../core/types.js';
 import { type ValidationMode, validatePart } from '../core/validation.js';
 
 export interface SdkOptions<Ctx> {
   /** Called on every call with that call's context. */
   readonly tokenStore: TokenStoreProvider<Ctx>;
-  /** Overrides the base URLs read from the environment. */
-  readonly baseUrls?: Partial<BaseUrls>;
+  /** Base URL of every service the use cases name. */
+  readonly baseUrls: Readonly<Record<ServiceName, string>>;
   /** How much of a body is checked before sending; defaults to `shape`. */
   readonly validation?: ValidationMode;
   /** Defaults to the global `fetch`. */
@@ -20,7 +26,7 @@ export interface SdkOptions<Ctx> {
 
 export interface SdkConfig<Ctx> {
   readonly tokenStore: TokenStoreProvider<Ctx>;
-  readonly baseUrls: BaseUrls;
+  readonly baseUrls: Readonly<Record<ServiceName, string>>;
   readonly validation: ValidationMode;
   readonly fetch: typeof fetch;
   readonly headers: Readonly<Record<string, string>>;

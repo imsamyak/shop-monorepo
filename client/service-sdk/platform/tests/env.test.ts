@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveBaseUrls } from '../src/index.js';
+import { allUseCases, resolveBaseUrls } from '../src/index.js';
 
 describe('resolveBaseUrls', () => {
   it('falls back to the local service ports', () => {
@@ -16,5 +16,12 @@ describe('resolveBaseUrls', () => {
       order: 'https://orders.example.com',
       identity: 'http://override',
     });
+  });
+});
+
+describe('services', () => {
+  it('gives every service a use case names a base URL', () => {
+    const urls = resolveBaseUrls({});
+    for (const useCase of allUseCases) expect(urls, useCase.name).toHaveProperty(useCase.service);
   });
 });

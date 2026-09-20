@@ -1,4 +1,4 @@
-import { useCase } from '../../core/use-case-builder.js';
+import { useCase } from '@shop/sdk-core';
 import { deleteImageQuery, uploadImagesBody } from './schemas.js';
 import type { UploadedImagesResponse } from './types.js';
 

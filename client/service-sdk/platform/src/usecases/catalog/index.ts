@@ -1,4 +1,4 @@
-import { useCase } from '../../core/use-case-builder.js';
+import { useCase } from '@shop/sdk-core';
 import { listProductsQuery, productParams } from './schemas.js';
 import type { CatalogProduct, CatalogProductPage } from './types.js';
 

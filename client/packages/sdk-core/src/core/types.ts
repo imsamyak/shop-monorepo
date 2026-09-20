@@ -1,7 +1,7 @@
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-/** The backend service a use case is sent to; each one has its own base URL (see `config/env.ts`). */
-export type ServiceName = 'identity' | 'catalog' | 'listing' | 'checkout' | 'order' | 'inventory' | 'asset';
+/** The backend service a use case is sent to; each one has its own base URL (`SdkOptions.baseUrls`). */
+export type ServiceName = string;
 
 /** The part of a request a validator checks. */
 export type RequestPart = 'params' | 'query' | 'body';
