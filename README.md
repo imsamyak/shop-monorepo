@@ -7,7 +7,8 @@ server/     everything that runs on a server
 client/     everything customers and sellers use, and the code that talks to the server
   service-sdk/    one typed client per server service
     platform/       @shop/platform-sdk, the client of server/platform
-  packages/       code shared by the apps (ui, config)
+    chatbot/        @shop/chatbot-sdk, the client of server/chatbot
+  packages/       code shared by the apps and SDKs (sdk-core, ui, config)
   apps/           the web apps; cartly is the first (Next.js)
 ```
 

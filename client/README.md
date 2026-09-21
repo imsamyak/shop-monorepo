@@ -1,7 +1,7 @@
 # client
 
 ```
-service-sdk/    one typed client per server service, named after it (platform/, later chatbot/)
+service-sdk/    one typed client per server service, named after it (platform/, chatbot/), built on packages/sdk-core
 packages/       code the apps share
 apps/           things you run or deploy, one folder each (cartly is the first)
 ```
