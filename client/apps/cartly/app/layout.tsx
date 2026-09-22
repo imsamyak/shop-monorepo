@@ -1,3 +1,4 @@
+import { ChatWidget } from '@cartly/chat';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { logout } from '@/lib/actions';
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         <main className="container">{children}</main>
+        {user && <ChatWidget title="Cartly assistant" />}
       </body>
     </html>
   );

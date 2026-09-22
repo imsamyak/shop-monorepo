@@ -4,6 +4,8 @@ import { chatbotUseCases } from './usecases.js';
 
 export { type BaseUrls, CHATBOT_URL_ENV, resolveBaseUrls } from './config.js';
 export * from './usecases.js';
+// the engine, so an app needs only this package
+export * from '@shop/sdk-core';
 
 /** The engine's options; `baseUrls` only overrides the address read from the environment. */
 export type ChatbotSdkOptions<Ctx> = Omit<SdkOptions<Ctx>, 'baseUrls'> & { readonly baseUrls?: Partial<BaseUrls> };

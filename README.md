@@ -8,8 +8,8 @@ client/     everything customers and sellers use, and the code that talks to the
   service-sdk/    one typed client per server service
     platform/       @shop/platform-sdk, the client of server/platform
     chatbot/        @shop/chatbot-sdk, the client of server/chatbot
-  packages/       code shared by the apps and SDKs (sdk-core, ui, config)
-  apps/           the web apps; cartly is the first (Next.js)
+  packages/       code shared by the apps and SDKs (sdk-core, ui, chat, config)
+  apps/           the web apps; cartly is the first (Next.js, with the chat window)
 ```
 
 The TypeScript code (`client/` and the Node services in `server/`) is one pnpm workspace rooted here: run `pnpm install`

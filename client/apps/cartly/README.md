@@ -24,3 +24,9 @@ local ports. See `.env.example`.
 - A product's `images` are in the order the seller gave them; the first is the main picture (`lib/images.ts`).
 - Carts and orders only hold SKU ids, so `lib/catalog.ts` looks names and pictures up in the catalog's newest 100
   products.
+
+## Shopping assistant
+
+Signed-in customers get a chat window (`@cartly/chat`). It posts to this app's `/api/chat`, which asks the chatbot
+(`server/chatbot`, through `@shop/chatbot-sdk`) with the customer's cookie token, so the token never reaches the browser.
+Start the chatbot first (port 4001, or set `CHATBOT_URL`).

@@ -10,6 +10,12 @@ importers:
 
   client/apps/cartly:
     dependencies:
+      '@cartly/chat':
+        specifier: workspace:*
+        version: link:../../packages/chat
+      '@shop/chatbot-sdk':
+        specifier: workspace:*
+        version: link:../../service-sdk/chatbot
       '@shop/platform-sdk':
         specifier: workspace:*
         version: link:../../service-sdk/platform
@@ -38,6 +44,21 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  client/packages/chat:
+    devDependencies:
+      '@cartly/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
   client/packages/config: {}
 

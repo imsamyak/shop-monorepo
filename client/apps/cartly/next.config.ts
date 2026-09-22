@@ -5,6 +5,8 @@ import type { NextConfig } from 'next';
 const workspaceRoot = path.join(__dirname, '../../..');
 
 const nextConfig: NextConfig = {
+  // The shared packages are TypeScript source, so Next compiles them with the app.
+  transpilePackages: ['@cartly/chat'],
   turbopack: { root: workspaceRoot },
   outputFileTracingRoot: workspaceRoot,
   // A seller uploads up to ten pictures of 5 MB through a server action.

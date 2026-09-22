@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "pnpm --filter @shop/platform-sdk build",
+    "predev": "pnpm --filter @shop/platform-sdk --filter @shop/chatbot-sdk build",
     "dev": "next dev",
-    "prebuild": "pnpm --filter @shop/platform-sdk build",
+    "prebuild": "pnpm --filter @shop/platform-sdk --filter @shop/chatbot-sdk build",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@cartly/chat": "workspace:*",
+    "@shop/chatbot-sdk": "workspace:*",
     "@shop/platform-sdk": "workspace:*",
     "next": "16.4.3",
     "react": "19.3.1",
