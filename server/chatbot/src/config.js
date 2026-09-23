@@ -7,7 +7,7 @@ export const config = {
   port: Number(process.env.PORT || 4001),
 
   // Gemini API key and model
-  geminiApiKey: process.env.GEMINI_API_KEY,
+  geminiApiKey: process.env.GEMINI_API_KEY || process.env.CHATBOT_API_KEY_GEMINI,
   model: process.env.MODEL || "gemini-3.8-flash",
 
   // The little test page in public/ is for development only

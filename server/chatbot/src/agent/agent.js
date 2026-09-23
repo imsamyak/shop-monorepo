@@ -12,7 +12,8 @@ import { GoogleGenAI } from "@google/genai";
 import { config } from "../config.js";
 import { tools, runTool } from "./tools.js";
 
-const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
+// A stalled Gemini request should fail within seconds, not hold the customer's chat window open.
+const ai = new GoogleGenAI({ apiKey: config.geminiApiKey, httpOptions: { timeout: 30_000 } });
 
 const SYSTEM_PROMPT = `You are a friendly shopping assistant for an online shop.
 - For questions about shipping, returns, refunds, payments or accounts, use search_knowledge and answer only from what it returns.

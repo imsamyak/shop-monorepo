@@ -62,6 +62,10 @@ app.post("/api/chat", async (req, res) => {
     res.json({ reply });
   } catch (err) {
     console.error(err);
+    // Gemini says 429/503 when it is rate limiting or overloaded; that is worth retrying, unlike a bug of ours
+    if (err.status === 429 || err.status === 503 || err.name === "TimeoutError" || err.name === "AbortError") {
+      return res.status(503).json({ error: "The assistant is busy right now, please try again in a moment" });
+    }
     res.status(500).json({ error: "The assistant could not answer right now" });
   }
 });
