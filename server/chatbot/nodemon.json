@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "../../client/service-sdk/platform/dist", "../../client/packages/sdk-core/dist"],
+  "ext": "js,json",
+  "exec": "node --env-file-if-exists=../../.env --env-file-if-exists=.env src/server.js",
+  "delay": 500
+}

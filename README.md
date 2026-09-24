@@ -15,3 +15,17 @@ client/     everything customers and sellers use, and the code that talks to the
 The TypeScript code (`client/` and the Node services in `server/`) is one pnpm workspace rooted here: run `pnpm install`
 once and the packages find each other by name (`"@shop/platform-sdk": "workspace:*"`). `server/platform` is a separate
 Maven build (`cd server/platform && mvn clean install`).
+
+## Run everything for development
+
+Start the resources once (`server/platform/bootstrap/local/local.ps1 up`), then:
+
+```
+server/platform/bootstrap/local/dev-service.ps1 <identity|inventory|order|catalog|listing|checkout|asset>
+./dev-rest.ps1        # checkout, asset, chatbot and Cartly in one window
+```
+
+Each Java service restarts itself when its code, `module/*` or `infra` changes (a shared module is installed first).
+The chatbot restarts with nodemon and Cartly hot-reloads. Start inventory, order and catalog before listing and checkout,
+because a RabbitMQ message sent before its consumer's queue exists is dropped.
+
