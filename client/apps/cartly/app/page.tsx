@@ -35,7 +35,10 @@ export default async function HomePage({ searchParams }: PageProps<'/'>) {
   return (
     <>
       <form className="toolbar">
-        <h1>All products</h1>
+        <div>
+          <h1>All products</h1>
+          <p className="muted tagline">{result.totalElements} {result.totalElements === 1 ? 'product' : 'products'}</p>
+        </div>
         <div className="row">
           <label className="check">
             <input type="checkbox" name="inStock" value="1" defaultChecked={inStock} />

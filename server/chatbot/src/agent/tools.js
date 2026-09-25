@@ -58,15 +58,22 @@ export const tools = [
       },
     },
     run: async ({ title }, ctx) => {
-      const page = await shopApi(ctx.token).searchProducts(title);
-      return untrusted(
-        page.items.map((p) => ({
-          id: p.id,
-          title: sellerText(p.title),
-          description: sellerText(p.description),
-          price: p.defaultPrice,
-        })),
+      const api = shopApi(ctx.token);
+      const page = await api.searchProducts(title);
+      // What the shop shows is the catalog's price and stock, not the listing's base price, so ask the catalog.
+      const items = await Promise.all(
+        page.items.map(async (p) => {
+          const live = await api.getProduct(p.id).catch(() => null);
+          return {
+            id: p.id,
+            title: sellerText(p.title),
+            description: sellerText(p.description),
+            price: live ? (live.lowestSkuPrice ?? live.price) : p.defaultPrice,
+            availability: live?.availability,
+          };
+        }),
       );
+      return untrusted(items);
     },
   },
   {

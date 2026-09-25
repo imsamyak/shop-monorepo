@@ -49,6 +49,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         <main className="container">{children}</main>
+        <footer className="footer">
+          <div className="container">Cartly · Browse, add to cart, check out.</div>
+        </footer>
         {user && <ChatWidget title="Cartly assistant" />}
       </body>
     </html>

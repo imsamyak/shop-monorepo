@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 
 export interface ChatWidgetProps {
   /** Where messages are posted as `{ message, sessionId }`; answers `{ reply }`. The app's server adds the customer's token. */
@@ -15,6 +15,48 @@ interface Message {
 }
 
 const SESSION_KEY = 'chat-session';
+
+/** `**bold**` inside one line of a reply; everything else stays plain text, so nothing a seller wrote becomes markup. */
+function inline(line: string): ReactNode[] {
+  return line.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? <strong key={i}>{part.slice(2, -2)}</strong> : part,
+  );
+}
+
+/** The assistant answers in light markdown: paragraphs, `- ` or `* ` bullets and bold. */
+function Reply({ text }: { text: string }) {
+  const blocks: ReactNode[] = [];
+  let bullets: string[] = [];
+  const flush = () => {
+    if (bullets.length) {
+      blocks.push(
+        <ul key={`ul${blocks.length}`}>
+          {bullets.map((item, i) => (
+            <li key={i}>{inline(item)}</li>
+          ))}
+        </ul>,
+      );
+      bullets = [];
+    }
+  };
+  for (const raw of text.split('\n')) {
+    const bullet = /^\s*[-*]\s+(.*)$/.exec(raw);
+    if (bullet) {
+      bullets.push(bullet[1] ?? '');
+      continue;
+    }
+    flush();
+    if (/^\s*-{3,}\s*$/.test(raw)) {
+      blocks.push(<hr key={`hr${blocks.length}`} />);
+      continue;
+    }
+    const heading = /^\s*#{1,6}\s+(.*)$/.exec(raw);
+    if (heading) blocks.push(<p key={`h${blocks.length}`}><strong>{inline(heading[1] ?? '')}</strong></p>);
+    else if (raw.trim()) blocks.push(<p key={`p${blocks.length}`}>{inline(raw)}</p>);
+  }
+  flush();
+  return <>{blocks}</>;
+}
 
 /** One conversation per browser tab: the id survives a reload so the assistant still remembers the thread. */
 function sessionId(): string {
@@ -86,11 +128,11 @@ export function ChatWidget({ endpoint = '/api/chat', title = 'Shopping assistant
           </header>
           <div className="cc-log" role="log" aria-live="polite">
             {messages.map((m, i) => (
-              <p key={i} className={`cc-msg cc-${m.from}`}>
-                {m.text}
-              </p>
+              <div key={i} className={`cc-msg cc-${m.from}`}>
+                {m.from === 'bot' ? <Reply text={m.text} /> : m.text}
+              </div>
             ))}
-            {busy && <p className="cc-msg cc-bot cc-wait">Thinking…</p>}
+            {busy && <div className="cc-msg cc-bot cc-wait">Thinking…</div>}
             <div ref={end} />
           </div>
           <form className="cc-form" onSubmit={send}>
@@ -124,6 +166,10 @@ const CSS = `
 .cc-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border, #e4e4df); }
 .cc-close { background: none; border: 0; color: inherit; font-size: 22px; line-height: 1; cursor: pointer; }
 .cc-log { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.cc-msg p { margin: 0 0 6px; }
+.cc-msg p:last-child, .cc-msg ul:last-child { margin-bottom: 0; }
+.cc-msg hr { border: 0; border-top: 1px solid var(--border, #e4e4df); margin: 8px 0; }
+.cc-msg ul { margin: 0 0 6px; padding-left: 18px; }
 .cc-msg { margin: 0; padding: 8px 12px; border-radius: 12px; max-width: 85%; white-space: pre-wrap; overflow-wrap: anywhere; }
 .cc-bot { background: var(--bg, #f7f7f5); align-self: flex-start; }
 .cc-you { background: var(--accent, #1f6f5c); color: var(--accent-text, #fff); align-self: flex-end; }
