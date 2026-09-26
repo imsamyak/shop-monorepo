@@ -1,0 +1,14 @@
+{
+  "name": "@shop/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Development scripts for the shop: seeding the local environment",
+  "type": "module",
+  "scripts": {
+    "preingest": "pnpm --filter @shop/platform-sdk build",
+    "ingest": "node ingest.mjs"
+  },
+  "dependencies": {
+    "@shop/platform-sdk": "workspace:*"
+  }
+}

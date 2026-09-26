@@ -1,6 +1,6 @@
 # Payments
 
-We accept credit and debit cards, UPI, and cash on delivery for orders under $200.
+We accept credit and debit cards, UPI, and cash on delivery for orders under ₹15,000.
 
 Your card is charged when you place the order. If an item is out of stock after ordering, that item is refunded automatically.
 
