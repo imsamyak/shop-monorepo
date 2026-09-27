@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { errorMessage } from './errors';
 import { api } from './sdk';
-import { getUser, requireUser } from './session';
+import { requireUser } from './session';
 
 export interface FormState {
   error?: string;
@@ -46,49 +46,6 @@ export async function register(_: FormState, formData: FormData): Promise<FormSt
 export async function logout() {
   await api().auth.logout();
   redirect('/');
-}
-
-export async function addToCart(_: FormState, formData: FormData): Promise<FormState> {
-  const productId = String(formData.get('productId'));
-  const user = await getUser();
-  if (!user) redirect(`/login?next=${encodeURIComponent(`/products/${productId}`)}`);
-  const skuId = Number(formData.get('skuId'));
-  if (!skuId) return { error: 'Pick an option first.' };
-  try {
-    await api().cart.addCartItem({ customerId: user.id, skuId, quantity: Number(formData.get('quantity') || 1) });
-  } catch (error) {
-    return { error: errorMessage(error) };
-  }
-  revalidatePath('/', 'layout');
-  return { message: 'Added to your cart.' };
-}
-
-/** Cart changes report failures through `?error=` on the cart page. */
-async function changeCart(change: (customerId: string) => Promise<unknown>) {
-  const user = await requireUser('/cart');
-  try {
-    await change(user.id);
-  } catch (error) {
-    redirect(`/cart?error=${encodeURIComponent(errorMessage(error))}`);
-  }
-  revalidatePath('/', 'layout');
-}
-
-export async function setQuantity(formData: FormData) {
-  const skuId = Number(formData.get('skuId'));
-  const quantity = Number(formData.get('quantity'));
-  const version = Number(formData.get('version'));
-  await changeCart((customerId) =>
-    quantity > 0
-      ? api().cart.setCartItem({ customerId, skuId, quantity, version })
-      : api().cart.removeCartItem({ customerId, skuId, version }),
-  );
-}
-
-export async function removeItem(formData: FormData) {
-  const skuId = Number(formData.get('skuId'));
-  const version = Number(formData.get('version'));
-  await changeCart((customerId) => api().cart.removeCartItem({ customerId, skuId, version }));
 }
 
 export async function startCheckout() {

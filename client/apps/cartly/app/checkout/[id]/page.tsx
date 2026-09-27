@@ -34,7 +34,7 @@ export default async function CheckoutPage({ params, searchParams }: PageProps<'
       <LineItems items={checkout.items} index={index} total={checkout.totalAmount} />
 
       {checkout.status === 'DRAFT' ? (
-        <div className="summary card">
+        <div className="summary-bar card">
           <span className="muted">Prices held until {formatDateTime(checkout.expiresAt)}</span>
           <div className="row">
             <form action={cancelCheckout}>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LineItems } from '@/components/LineItems';
 import { getSkuIndex } from '@/lib/catalog';
+import { orderNumber } from '@/lib/format';
 import { api } from '@/lib/sdk';
 import { requireUser } from '@/lib/session';
 
@@ -29,7 +30,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<'/or
       </Link>
       {placed === '1' && <p className="success card">Thanks! Your order has been placed.</p>}
       <h1>
-        Order <span className="mono">#{order.orderId.slice(0, 8)}</span>{' '}
+        Order <span className="mono">{orderNumber(order.orderId)}</span>{' '}
         <span className="badge">{order.status.toLowerCase()}</span>
       </h1>
       <LineItems items={order.items} index={index} total={order.totalAmount} />

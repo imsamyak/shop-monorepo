@@ -1,13 +1,24 @@
 'use client';
 
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+import Link from 'next/link';
+import { AlertIcon } from '@/components/icons';
+import { ErrorScreen } from '@/components/ErrorScreen';
+
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <div className="card center">
-      <h1>Something went wrong</h1>
-      <p className="muted">The shop could not load this page. The services may be down.</p>
-      <button className="primary" onClick={reset}>
+    <ErrorScreen
+      icon={<AlertIcon />}
+      eyebrow="Something went wrong"
+      title="Sorry, something went wrong on our end."
+      message="Please try again in a moment, or head back to the Cartly home page."
+      reference={error.digest}
+    >
+      <button onClick={reset} className="rounded-xl border-accent bg-accent px-6 py-3 font-bold text-white hover:bg-accent-hover">
         Try again
       </button>
-    </div>
+      <Link href="/" className="rounded-xl border border-line-strong bg-surface px-6 py-3 font-semibold text-ink hover:no-underline">
+        Go to home
+      </Link>
+    </ErrorScreen>
   );
 }

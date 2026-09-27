@@ -15,13 +15,6 @@ export const getUser = cache(async (): Promise<UserResponse | null> => {
   }
 });
 
-/** The signed-in seller; a buyer is sent to the seller sign-up, anyone else to the login page. */
-export async function requireSeller(from: string): Promise<UserResponse & { sellerId: string }> {
-  const user = await requireUser(from);
-  if (user.role !== 'ROLE_SELLER' || !user.sellerId) redirect(`/sell?next=${encodeURIComponent(from)}`);
-  return { ...user, sellerId: user.sellerId };
-}
-
 /** The signed-in user; anyone else is sent to the login page and back to `from` afterwards. */
 export async function requireUser(from: string): Promise<UserResponse> {
   const user = await getUser();

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, orderNumber } from '@/lib/format';
 import { api } from '@/lib/sdk';
 import { requireUser } from '@/lib/session';
 
@@ -20,7 +20,7 @@ export default async function OrdersPage({ searchParams }: PageProps<'/orders'>)
           {orders.items.map((order) => (
             <li key={order.orderId}>
               <Link href={`/orders/${order.orderId}`} className="card order-row">
-                <span className="mono">#{order.orderId.slice(0, 8)}</span>
+                <span className="mono">{orderNumber(order.orderId)}</span>
                 <span className="muted">
                   {order.items.reduce((sum, item) => sum + item.quantity, 0)} item(s)
                 </span>
