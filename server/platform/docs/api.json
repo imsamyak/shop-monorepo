@@ -1001,6 +1001,7 @@
               "status": "DRAFT|COMMITTED|CANCELLED",
               "totalAmount": "decimal",
               "version": "long",
+              "createdAt": "string (ISO instant)|null",
               "items": [
                 {
                   "id": "long",
@@ -1039,6 +1040,7 @@
                   "status": "DRAFT|COMMITTED|CANCELLED",
                   "totalAmount": "decimal",
                   "version": "long",
+                  "createdAt": "string (ISO instant)|null",
                   "items": [
                     {
                       "id": "long",

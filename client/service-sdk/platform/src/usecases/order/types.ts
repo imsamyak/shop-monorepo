@@ -1,4 +1,4 @@
-import type { Decimal, PageResponse, Uuid } from '../shared/types.js';
+import type { Decimal, IsoInstant, PageResponse, Uuid } from '../shared/types.js';
 
 export type OrderStatus = 'DRAFT' | 'COMMITTED' | 'CANCELLED';
 
@@ -18,6 +18,8 @@ export interface OrderResponse {
   status: OrderStatus;
   totalAmount: Decimal;
   version: number;
+  /** When the order was first recorded; null for an order the shop only knows from a late event. */
+  createdAt: IsoInstant | null;
   items: OrderItemResponse[];
 }
 

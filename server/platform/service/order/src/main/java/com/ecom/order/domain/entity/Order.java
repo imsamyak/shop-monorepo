@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,13 +54,17 @@ public class Order extends DomainEntity {
    @Column(name = "applied_version", nullable = false)
    private long appliedVersion;
 
+   /** When the order was first seen. The same column the shared timestamp writes; this mapping only reads it. */
+   @Column(name = "created_at", insertable = false, updatable = false)
+   private LocalDateTime createdAt;
+
    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
    @JoinColumn(name = "order_id", nullable = false)
    private final List<OrderItem> items = new ArrayList<>();
 
    /** An order nothing is known about yet; the first event applied to it always counts. */
    public static Order unseen(UUID id) {
-      return new Order(id, null, OrderStatus.DRAFT, BigDecimal.ZERO, NOTHING_APPLIED);
+      return new Order(id, null, OrderStatus.DRAFT, BigDecimal.ZERO, NOTHING_APPLIED, null);
    }
 
    /**

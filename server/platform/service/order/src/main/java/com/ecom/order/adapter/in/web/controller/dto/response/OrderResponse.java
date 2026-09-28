@@ -5,6 +5,7 @@ import com.ecom.order.port.in.usecase.dto.result.OrderItemResult;
 import com.ecom.order.port.in.usecase.dto.result.OrderResult;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ public record OrderResponse(
       OrderStatus status,
       BigDecimal totalAmount,
       long version,
+      Instant createdAt,
       List<OrderItemResponse> items
 ) {
    public static OrderResponse from(OrderResult result) {
@@ -29,6 +31,7 @@ public record OrderResponse(
             result.status(),
             result.totalAmount(),
             result.appliedVersion(),
+            result.createdAt(),
             itemResponses);
    }
 

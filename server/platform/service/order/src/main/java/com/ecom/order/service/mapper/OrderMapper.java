@@ -6,6 +6,7 @@ import com.ecom.order.port.in.usecase.dto.result.OrderItemResult;
 import com.ecom.order.port.in.usecase.dto.result.OrderResult;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneId;
 import java.util.List;
 
 @Component
@@ -22,6 +23,7 @@ public class OrderMapper {
             .status(order.getStatus())
             .totalAmount(order.getTotalAmount())
             .appliedVersion(order.getAppliedVersion())
+            .createdAt(order.getCreatedAt() == null ? null : order.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant())
             .items(itemResults)
             .build();
    }

@@ -5,6 +5,7 @@ import com.ecom.shared.dto.result.Result;
 import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ public record OrderResult(
       OrderStatus status,
       BigDecimal totalAmount,
       long appliedVersion,
+      Instant createdAt,
       List<OrderItemResult> items
 ) implements Result.One {
 }
