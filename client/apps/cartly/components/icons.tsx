@@ -93,3 +93,15 @@ export const CompassIcon = ({ size = 44 }: IconProps) => (
     <path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" />
   </svg>
 );
+
+export const PlusIcon = ({ size = 20 }: IconProps) => (
+  <svg {...base(size)}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+export const MinusIcon = ({ size = 20 }: IconProps) => (
+  <svg {...base(size)}>
+    <path d="M5 12h14" />
+  </svg>
+);

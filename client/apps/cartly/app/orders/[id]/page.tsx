@@ -1,11 +1,18 @@
 import { SdkHttpError } from '@shop/platform-sdk';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { LineItems } from '@/components/LineItems';
+import { LineItems, OrderSummary } from '@/components/LineItems';
+import { OrderPlaced } from '@/components/OrderPlaced';
 import { getSkuIndex } from '@/lib/catalog';
 import { orderNumber } from '@/lib/format';
 import { api } from '@/lib/sdk';
 import { requireUser } from '@/lib/session';
+
+const HEADINGS: Record<string, string> = {
+  COMMITTED: 'Order Placed',
+  CANCELLED: 'Order Cancelled',
+  DRAFT: 'Order Pending',
+};
 
 async function loadOrder(orderId: string) {
   try {
@@ -28,12 +35,15 @@ export default async function OrderPage({ params, searchParams }: PageProps<'/or
       <Link href="/orders" className="back">
         ← All orders
       </Link>
-      {placed === '1' && <p className="success card">Thanks! Your order has been placed.</p>}
-      <h1>
-        Order <span className="mono">{orderNumber(order.orderId)}</span>{' '}
-        <span className="badge">{order.status.toLowerCase()}</span>
-      </h1>
-      <LineItems items={order.items} index={index} total={order.totalAmount} />
+      {placed === '1' && <OrderPlaced number={orderNumber(order.orderId)} />}
+      <div className="order-head">
+        <h1>{HEADINGS[order.status] ?? 'Your order'}</h1>
+        <span className="order-id">{orderNumber(order.orderId)}</span>
+      </div>
+      <div className="cart-layout">
+        <LineItems items={order.items} index={index} />
+        <OrderSummary title="Order summary" items={order.items} total={order.totalAmount} />
+      </div>
     </>
   );
 }

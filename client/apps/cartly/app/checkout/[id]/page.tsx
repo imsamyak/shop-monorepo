@@ -1,10 +1,9 @@
 import { SdkHttpError } from '@shop/platform-sdk';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { LineItems } from '@/components/LineItems';
+import { LineItems, OrderSummary } from '@/components/LineItems';
 import { cancelCheckout, placeOrder } from '@/lib/actions';
 import { getSkuIndex } from '@/lib/catalog';
-import { formatDateTime } from '@/lib/format';
 import { api } from '@/lib/sdk';
 import { requireUser } from '@/lib/session';
 
@@ -31,31 +30,32 @@ export default async function CheckoutPage({ params, searchParams }: PageProps<'
       </Link>
       <h1>Review your order</h1>
       {typeof error === 'string' && <p className="error">{error}</p>}
-      <LineItems items={checkout.items} index={index} total={checkout.totalAmount} />
-
       {checkout.status === 'DRAFT' ? (
-        <div className="summary-bar card">
-          <span className="muted">Prices held until {formatDateTime(checkout.expiresAt)}</span>
-          <div className="row">
-            <form action={cancelCheckout}>
-              <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
-              <button>Cancel</button>
-            </form>
+        <div className="cart-layout">
+          <LineItems items={checkout.items} index={index} />
+          <OrderSummary title="Order summary" items={checkout.items} total={checkout.totalAmount}>
             <form action={placeOrder}>
               <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
-              <button className="primary">Place order</button>
+              <button className="primary wide">Place order</button>
             </form>
-          </div>
+            <form action={cancelCheckout}>
+              <input type="hidden" name="checkoutId" value={checkout.checkoutId} />
+              <button className="wide">Cancel</button>
+            </form>
+          </OrderSummary>
         </div>
       ) : (
-        <p className="card">
-          This checkout is <strong>{checkout.status.toLowerCase()}</strong>.{' '}
-          {checkout.status === 'COMMITTED' ? (
-            <Link href={`/orders/${checkout.checkoutId}`}>View order</Link>
-          ) : (
-            <Link href="/cart">Back to cart</Link>
-          )}
-        </p>
+        <>
+          <LineItems items={checkout.items} index={index} />
+          <p className="card">
+            This checkout is <strong>{checkout.status.toLowerCase()}</strong>.{' '}
+            {checkout.status === 'COMMITTED' ? (
+              <Link href={`/orders/${checkout.checkoutId}`}>View order</Link>
+            ) : (
+              <Link href="/cart">Back to cart</Link>
+            )}
+          </p>
+        </>
       )}
     </>
   );

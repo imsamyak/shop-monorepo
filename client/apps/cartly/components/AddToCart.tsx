@@ -3,8 +3,14 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { formatMoney } from '@/lib/format';
-import { apiError, isUnauthorized, useAddToCartMutation } from '@/lib/store/api';
-import { CheckIcon } from './icons';
+import {
+  apiError,
+  isUnauthorized,
+  useAddToCartMutation,
+  useGetCartQuery,
+  useSetCartQuantityMutation,
+} from '@/lib/store/api';
+import { CheckIcon, MinusIcon, PlusIcon, TrashIcon } from './icons';
 
 export interface SkuOption {
   skuId: number;
@@ -13,16 +19,26 @@ export interface SkuOption {
   available: boolean;
 }
 
-/** The price, the option to pick, the quantity and the button. The cart in the header updates as soon as the add lands. */
+const MAX_QUANTITY = 20;
+
+/**
+ * The price, the option to pick and one button. It reads "Add to cart" until the picked option is in the cart; after
+ * that it becomes "Add more" with − and + at its ends, working on the same cache as the header's cart count.
+ */
 export function AddToCart({ productId, options }: { productId: string; options: SkuOption[] }) {
   const firstAvailable = options.find((option) => option.available);
   const [skuId, setSkuId] = useState(firstAvailable?.skuId ?? options[0]?.skuId);
-  const [quantity, setQuantity] = useState(1);
-  const [add, { isLoading, isSuccess, error, reset }] = useAddToCartMutation();
+  const [add, adding] = useAddToCartMutation();
+  const [setQuantity, changing] = useSetCartQuantityMutation();
+  // signed-out visitors get a 401 here, which simply means nothing is in a cart
+  const { data: cart } = useGetCartQuery();
 
   const selected = options.find((option) => option.skuId === skuId);
   const lowest = Math.min(...options.map((option) => option.price));
   const showOptions = options.length > 1 || (options[0] && options[0].label !== 'Standard');
+  const inCart = cart?.items.find((item) => item.skuId === skuId)?.quantity ?? 0;
+  const busy = adding.isLoading || changing.isLoading;
+  const error = adding.error ?? changing.error;
 
   if (!firstAvailable) {
     return (
@@ -33,9 +49,8 @@ export function AddToCart({ productId, options }: { productId: string; options: 
     );
   }
 
-  const change = (next: number) => {
-    reset();
-    setQuantity(Math.min(20, Math.max(1, next)));
+  const change = (quantity: number) => {
+    if (skuId && cart) setQuantity({ skuId, quantity, version: cart.version });
   };
 
   return (
@@ -57,7 +72,8 @@ export function AddToCart({ productId, options }: { productId: string; options: 
                   checked={option.skuId === skuId}
                   disabled={!option.available}
                   onChange={() => {
-                    reset();
+                    adding.reset();
+                    changing.reset();
                     setSkuId(option.skuId);
                   }}
                 />
@@ -68,29 +84,33 @@ export function AddToCart({ productId, options }: { productId: string; options: 
         </fieldset>
       )}
 
-      <div className="row buy-row">
-        <div className="stepper" role="group" aria-label="Quantity">
-          <button type="button" onClick={() => change(quantity - 1)} disabled={quantity <= 1} aria-label="Fewer">
-            −
+      {inCart > 0 ? (
+        <div className="merged" role="group" aria-label="Quantity in your cart">
+          <button type="button" aria-label={inCart === 1 ? 'Remove from cart' : 'Remove one'} disabled={busy} onClick={() => change(inCart - 1)}>
+            {inCart === 1 ? <TrashIcon /> : <MinusIcon />}
           </button>
-          <output>{quantity}</output>
-          <button type="button" onClick={() => change(quantity + 1)} disabled={quantity >= 20} aria-label="More">
-            +
+          <span className="merged-label">
+            <strong>Add more</strong>
+            <small>{inCart} in cart</small>
+          </span>
+          <button type="button" aria-label="Add one more" disabled={busy || inCart >= MAX_QUANTITY} onClick={() => change(inCart + 1)}>
+            <PlusIcon />
           </button>
         </div>
+      ) : (
         <button
           type="button"
-          className="primary grow"
-          disabled={isLoading || !skuId || !selected?.available}
-          onClick={() => skuId && add({ skuId, quantity })}
+          className="primary wide"
+          disabled={busy || !skuId || !selected?.available}
+          onClick={() => skuId && add({ skuId, quantity: 1 })}
         >
-          {isLoading ? 'Adding…' : 'Add to cart'}
+          {adding.isLoading ? 'Adding…' : 'Add to cart'}
         </button>
-      </div>
+      )}
 
-      {isSuccess && (
+      {inCart > 0 && (
         <p className="success note">
-          <CheckIcon /> Added to your cart. <Link href="/cart">View cart</Link>
+          <CheckIcon /> In your cart. <Link href="/cart">View cart</Link>
         </p>
       )}
       {error &&

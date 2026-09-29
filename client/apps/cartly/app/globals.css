@@ -146,7 +146,7 @@
   .empty-state { display: grid; justify-items: center; gap: 8px; padding: 64px 16px; text-align: center; color: var(--muted); }
   .empty-state h2 { color: var(--text); }
   .empty-state p { margin: 0 0 12px; }
-  .back { display: inline-block; margin-bottom: 18px; font-weight: 550; }
+  .back { display: inline-block; margin-bottom: 18px; padding-inline: 5px; font-weight: 550; }
   .badge {
     font-size: 0.74rem; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border-strong);
     color: var(--muted); font-weight: 650; vertical-align: middle; text-transform: capitalize;
@@ -213,12 +213,12 @@
   .toggle input:checked + .track { background: var(--accent); }
   .toggle input:checked + .track::after { transform: translateX(16px); }
 
-  .grid {
+  .product-grid {
     list-style: none; margin: 0; padding: 0;
     display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     transition: opacity 0.15s;
   }
-  .grid.fetching { opacity: 0.55; }
+  .product-grid.fetching { opacity: 0.55; }
   .tile {
     display: flex; flex-direction: column; height: 100%; color: var(--text);
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -335,7 +335,7 @@
     .page { padding: 0 14px; }
     main.page { padding-top: 16px; padding-bottom: 40px; }
     h1 { font-size: 1.45rem; }
-    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .tile-body { padding: 10px 12px 12px; }
     .tile .title { font-size: 0.92rem; }
     .toolbar { align-items: flex-end; }
@@ -361,5 +361,78 @@
   @media (max-width: 380px) {
     .nav-cart span:not(.count) { display: none; }
     .header nav { gap: 12px; }
+  }
+
+  /* ---------- order placed ---------- */
+  .placed-overlay {
+    position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: hidden; cursor: pointer;
+    color: #fff; text-shadow: 0 1px 12px rgba(20, 14, 70, 0.45);
+    /* see-through: the page stays visible behind, softly blurred */
+    background: color-mix(in srgb, #2a1f8f 46%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+    animation: placed-fade-in 0.3s ease both, placed-out 0.45s ease 2.15s forwards;
+  }
+  .placed-card { position: relative; z-index: 1; display: grid; justify-items: center; gap: 6px; padding: 24px; text-align: center; animation: placed-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+  .placed-card h2 { font-size: clamp(1.9rem, 6vw, 2.8rem); letter-spacing: -0.03em; margin-top: 10px; }
+  .placed-card p { margin: 0; font-size: 1.05rem; opacity: 0.92; }
+  .placed-check { width: 112px; height: 112px; }
+  .placed-circle { stroke: #fff; stroke-width: 2.5; stroke-dasharray: 151; stroke-dashoffset: 151; animation: placed-draw 0.6s ease 0.15s forwards; fill: rgba(255, 255, 255, 0.16); }
+  .placed-tick { stroke: #fff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; animation: placed-draw 0.4s ease 0.6s forwards; }
+  .confetti { position: absolute; top: -16px; width: 10px; height: 16px; border-radius: 2px; opacity: 0.9; animation-name: confetti-fall; animation-timing-function: linear; animation-iteration-count: 1; animation-fill-mode: both; }
+  @keyframes placed-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes placed-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes placed-draw { to { stroke-dashoffset: 0; } }
+  @keyframes placed-out { to { opacity: 0; visibility: hidden; } }
+  @keyframes confetti-fall { to { transform: translateY(110vh) rotate(540deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .confetti { display: none; }
+    .placed-card, .placed-circle, .placed-tick { animation-duration: 0.01s; animation-delay: 0s; }
+  }
+
+  /* ---------- order heading ---------- */
+  /* the text sits 5px in from both edges, so it lines up with the curve of the rounded cards below */
+  .order-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; padding-inline: 5px; }
+  .order-head h1 { margin: 0; }
+  .order-id { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.04em; }
+
+  /* ---------- add to cart: one control that grows into - Add more + ---------- */
+  .merged {
+    display: flex; align-items: center; justify-content: space-between; height: 52px; margin-top: 4px;
+    background: var(--accent); color: var(--accent-text); border-radius: 12px; overflow: hidden;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .merged button { width: 56px; height: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; display: grid; place-items: center; }
+  .merged button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); color: inherit; }
+  .merged-label { display: grid; justify-items: center; line-height: 1.15; }
+  .merged-label small { opacity: 0.85; font-size: 0.78rem; }
+
+  /* ---------- orders list ---------- */
+  .page-title { padding-inline: 5px; }
+  .order-card {
+    display: flex; align-items: center; gap: 20px; padding: 22px 24px; min-height: 104px; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .order-card:hover { text-decoration: none; transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-hover); }
+  .order-thumbs { display: flex; align-items: center; flex: none; }
+  .order-thumbs img {
+    width: 44px; height: 44px; object-fit: cover; border-radius: 10px; background: var(--field);
+    border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border);
+  }
+  .order-thumbs img + img { margin-left: -10px; }
+  .order-thumbs .more {
+    display: grid; place-items: center; min-width: 44px; height: 44px; margin-left: -10px; padding: 0 8px; border-radius: 10px;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.9rem; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border);
+  }
+  .order-main { display: grid; gap: 2px; flex: 1; min-width: 0; }
+  .order-main strong { font-size: 1.02rem; }
+  .order-total { font-size: 1.1rem; white-space: nowrap; }
+  .order-chevron { color: var(--muted); font-size: 1.6rem; line-height: 1; }
+  @media (max-width: 640px) {
+    .order-card { flex-wrap: wrap; gap: 12px 14px; padding: 16px; min-height: 0; }
+    .order-thumbs { min-width: 0; order: 2; flex-basis: 100%; }
+    .order-main { order: 1; flex-basis: calc(100% - 120px); }
+    .order-total { order: 1; margin-left: auto; }
+    .order-chevron { display: none; }
   }
 }

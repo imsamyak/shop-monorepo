@@ -101,7 +101,7 @@ export function ProductBrowser() {
           </button>
         </div>
       ) : !data ? (
-        <ul className="grid">
+        <ul className="product-grid">
           {Array.from({ length: PAGE_SIZE }, (_, i) => (
             <li key={i}>
               <ProductCardSkeleton />
@@ -111,7 +111,7 @@ export function ProductBrowser() {
       ) : data.items.length === 0 ? (
         <p className="empty">Nothing matches that. Try another search or clear the filters.</p>
       ) : (
-        <ul className={`grid${isFetching ? ' fetching' : ''}`}>
+        <ul className={`product-grid${isFetching ? ' fetching' : ''}`}>
           {data.items.map((product) => (
             <li key={product.id}>
               <ProductCard product={product} />
