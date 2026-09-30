@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LineItems, OrderSummary } from '@/components/LineItems';
 import { OrderPlaced } from '@/components/OrderPlaced';
+import { OrderTimeline } from '@/components/OrderTimeline';
 import { getSkuIndex } from '@/lib/catalog';
 import { orderNumber } from '@/lib/format';
 import { api } from '@/lib/sdk';
@@ -41,7 +42,10 @@ export default async function OrderPage({ params, searchParams }: PageProps<'/or
         <span className="order-id">{orderNumber(order.orderId)}</span>
       </div>
       <div className="cart-layout">
-        <LineItems items={order.items} index={index} />
+        <div className="grid min-w-0 gap-5">
+          {order.status === 'COMMITTED' && <OrderTimeline placedAt={order.createdAt} />}
+          <LineItems items={order.items} index={index} />
+        </div>
         <OrderSummary title="Order summary" items={order.items} total={order.totalAmount} />
       </div>
     </>

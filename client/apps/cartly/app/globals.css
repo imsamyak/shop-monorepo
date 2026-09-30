@@ -435,4 +435,30 @@
     .order-total { order: 1; margin-left: auto; }
     .order-chevron { display: none; }
   }
+
+  /* ---------- order timeline ---------- */
+  .timeline-card h2 { margin-bottom: 16px; }
+  .timeline { list-style: none; margin: 0; padding: 0; display: flex; }
+  .timeline li { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  /* the line to the next step: grey until that step is reached */
+  .timeline li:not(:last-child)::after {
+    content: ''; position: absolute; top: 13px; left: calc(50% + 18px); right: calc(-50% + 18px); height: 2px; background: var(--border-strong); border-radius: 2px;
+  }
+  .timeline li.done:not(:last-child)::after { background: var(--accent); }
+  .timeline .dot {
+    display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; flex: none;
+    background: var(--surface); border: 2px solid var(--border-strong); color: #fff; position: relative; z-index: 1;
+  }
+  .timeline li.done .dot { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .step-text { display: grid; gap: 2px; justify-items: center; color: var(--muted); font-size: 0.86rem; line-height: 1.25; }
+  .step-text strong { font-weight: 600; }
+  .timeline li.done .step-text { color: var(--text); }
+  .timeline li.done .step-text strong { font-weight: 700; }
+  .step-text small { color: var(--muted); font-size: 0.76rem; }
+  @media (max-width: 640px) {
+    .timeline { flex-direction: column; gap: 22px; }
+    .timeline li { flex-direction: row; align-items: flex-start; text-align: left; gap: 14px; }
+    .step-text { justify-items: start; padding-top: 3px; }
+    .timeline li:not(:last-child)::after { top: 30px; bottom: -22px; left: 13px; right: auto; width: 2px; height: auto; }
+  }
 }
