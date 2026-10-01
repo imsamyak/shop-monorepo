@@ -7,7 +7,7 @@ export type * from './types.js';
 /** Sellers and admins. The returned `items` come back in the order of `files`. */
 export const uploadImages = useCase('UploadImages')
   .service('asset')
-  .post('/assets/images')
+  .post('/api/assets/images')
   .body(uploadImagesBody)
   .multipart()
   .authRequired()
@@ -17,7 +17,7 @@ export const uploadImages = useCase('UploadImages')
 /** Only the user who uploaded the image, or an admin. */
 export const deleteImage = useCase('DeleteImage')
   .service('asset')
-  .delete('/assets/images')
+  .delete('/api/assets/images')
   .query(deleteImageQuery)
   .authRequired()
   .build();

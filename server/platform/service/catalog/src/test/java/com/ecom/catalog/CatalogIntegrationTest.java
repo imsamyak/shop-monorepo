@@ -125,22 +125,22 @@ class CatalogIntegrationTest {
       String sku = "sku-" + UUID.randomUUID();
       newSku(first, sku, "90.00", 0, 0);
 
-      JsonNode feed = get("/catalog/products?size=100").body();
+      JsonNode feed = get("/api/catalog/products?size=100").body();
       assertThat(ids(feed)).containsSubsequence(second, first);
-      assertThat(get("/catalog/products/" + first).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
+      assertThat(get("/api/catalog/products/" + first).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
 
       deliver(new Inventory.StockAdded(sku, 5, 5, 5, 1));
-      assertThat(get("/catalog/products/" + first).body().path("availability").asText()).isEqualTo("AVAILABLE");
+      assertThat(get("/api/catalog/products/" + first).body().path("availability").asText()).isEqualTo("AVAILABLE");
 
       deliver(new Inventory.AvailabilityChanged(sku, 5, 5, 0, 2));
-      assertThat(get("/catalog/products/" + first).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
+      assertThat(get("/api/catalog/products/" + first).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
 
       deliver(new Inventory.AvailabilityChanged(sku, 5, 0, 5, 3));
       deliver(new Inventory.AvailabilityChanged(sku, 5, 5, 0, 2)); // late and older: ignored
-      assertThat(get("/catalog/products/" + first).body().path("availability").asText()).isEqualTo("AVAILABLE");
+      assertThat(get("/api/catalog/products/" + first).body().path("availability").asText()).isEqualTo("AVAILABLE");
 
       deliver(new Inventory.StockAdjusted(sku, -5, 0, 0, 4));
-      assertThat(get("/catalog/products/" + first).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
+      assertThat(get("/api/catalog/products/" + first).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
    }
 
    @Test
@@ -150,17 +150,17 @@ class CatalogIntegrationTest {
          List.of("https://f.example.com/3.png", "https://f.example.com/1.png", "https://f.example.com/2.png"), 1));
 
       List<String> shown = new ArrayList<>();
-      get("/catalog/products/" + id).body().path("images").forEach(node -> shown.add(node.asText()));
+      get("/api/catalog/products/" + id).body().path("images").forEach(node -> shown.add(node.asText()));
       assertThat(shown).containsExactly("https://f.example.com/3.png", "https://f.example.com/1.png", "https://f.example.com/2.png");
 
       deliver(new Product.Updated(id, "Phone", "d", List.of("https://f.example.com/2.png"), 2));
-      assertThat(get("/catalog/products/" + id).body().path("images")).hasSize(1);
+      assertThat(get("/api/catalog/products/" + id).body().path("images")).hasSize(1);
       deliver(new Product.Updated(id, "Phone", "d", List.of(), 3));
-      assertThat(get("/catalog/products/" + id).body().path("images").isArray()).isTrue();
-      assertThat(get("/catalog/products/" + id).body().path("images")).isEmpty();
+      assertThat(get("/api/catalog/products/" + id).body().path("images").isArray()).isTrue();
+      assertThat(get("/api/catalog/products/" + id).body().path("images")).isEmpty();
 
       boolean inTheFeed = false;
-      for (JsonNode item : get("/catalog/products?size=100").body().path("items")) {
+      for (JsonNode item : get("/api/catalog/products?size=100").body().path("items")) {
          if (item.path("id").asText().equals(id)) {
             inTheFeed = item.path("images").isArray();
          }
@@ -173,7 +173,7 @@ class CatalogIntegrationTest {
       String id = newProduct("Phone", "500.00");
       newSku(id, "sku-" + UUID.randomUUID(), "450.00", 7, 1);
 
-      Reply reply = get("/catalog/products/" + id);
+      Reply reply = get("/api/catalog/products/" + id);
 
       assertThat(reply.status()).isEqualTo(200);
       JsonNode product = reply.body();
@@ -198,18 +198,18 @@ class CatalogIntegrationTest {
       newSku(cheap, "sku-" + UUID.randomUUID(), "10.00", 1, 1);
       newSku(pricey, "sku-" + UUID.randomUUID(), "30.00", 0, 0);
 
-      List<String> byPrice = ids(get("/catalog/products?sort=price,asc&size=100").body());
+      List<String> byPrice = ids(get("/api/catalog/products?sort=price,asc&size=100").body());
       assertThat(byPrice).containsSubsequence(cheap, middle, pricey);
-      List<String> byPriceDesc = ids(get("/catalog/products?sort=price,desc&size=100").body());
+      List<String> byPriceDesc = ids(get("/api/catalog/products?sort=price,desc&size=100").body());
       assertThat(byPriceDesc).containsSubsequence(pricey, middle, cheap);
 
-      List<String> available = ids(get("/catalog/products?availability=AVAILABLE&size=100").body());
+      List<String> available = ids(get("/api/catalog/products?availability=AVAILABLE&size=100").body());
       assertThat(available).contains(cheap).doesNotContain(middle, pricey);
-      List<String> outOfStock = ids(get("/catalog/products?availability=OUT_OF_STOCK&size=100").body());
+      List<String> outOfStock = ids(get("/api/catalog/products?availability=OUT_OF_STOCK&size=100").body());
       assertThat(outOfStock).contains(middle, pricey).doesNotContain(cheap);
 
-      JsonNode firstPage = get("/catalog/products?size=2&page=0&sort=createdAt,desc").body();
-      JsonNode secondPage = get("/catalog/products?size=2&page=1&sort=createdAt,desc").body();
+      JsonNode firstPage = get("/api/catalog/products?size=2&page=0&sort=createdAt,desc").body();
+      JsonNode secondPage = get("/api/catalog/products?size=2&page=1&sort=createdAt,desc").body();
       assertThat(firstPage.path("items")).hasSize(2);
       assertThat(firstPage.path("page").asInt()).isZero();
       assertThat(firstPage.path("size").asInt()).isEqualTo(2);
@@ -221,25 +221,25 @@ class CatalogIntegrationTest {
    @Test
    void deletedAndUnknownProductsAreNotFoundAndLeaveTheFeed() throws Exception {
       String id = newProduct("Gone", "10.00");
-      assertThat(ids(get("/catalog/products?size=100").body())).contains(id);
+      assertThat(ids(get("/api/catalog/products?size=100").body())).contains(id);
 
       deliver(new Product.Deleted(id, 2));
       deliver(new Product.Updated(id, "Back?", "late", List.of(), 9));
 
-      assertThat(ids(get("/catalog/products?size=100").body())).doesNotContain(id);
-      assertThat(get("/catalog/products/" + id).status()).isEqualTo(404);
-      assertThat(get("/catalog/products/" + UUID.randomUUID()).status()).isEqualTo(404);
+      assertThat(ids(get("/api/catalog/products?size=100").body())).doesNotContain(id);
+      assertThat(get("/api/catalog/products/" + id).status()).isEqualTo(404);
+      assertThat(get("/api/catalog/products/" + UUID.randomUUID()).status()).isEqualTo(404);
    }
 
    @Test
    void aProductThatHasNotBeenCreatedYetIsNotShownEvenWhenItsSkuIs() throws Exception {
       String id = UUID.randomUUID().toString();
       newSku(id, "sku-" + UUID.randomUUID(), "5.00", 3, 1);
-      assertThat(get("/catalog/products/" + id).status()).isEqualTo(404);
+      assertThat(get("/api/catalog/products/" + id).status()).isEqualTo(404);
 
       deliver(new Product.Created(id, "seller-1", "Late bloomer", "d", new BigDecimal("6.00"), List.of(), 1));
 
-      Reply reply = get("/catalog/products/" + id);
+      Reply reply = get("/api/catalog/products/" + id);
       assertThat(reply.status()).isEqualTo(200);
       assertThat(reply.body().path("availability").asText()).isEqualTo("AVAILABLE");
       assertThat(reply.body().path("skus")).hasSize(1);
@@ -247,13 +247,13 @@ class CatalogIntegrationTest {
 
    @Test
    void badParametersAreRejectedWith400() throws Exception {
-      assertThat(get("/catalog/products?size=101").status()).isEqualTo(400);
-      assertThat(get("/catalog/products?size=0").status()).isEqualTo(400);
-      assertThat(get("/catalog/products?page=-1").status()).isEqualTo(400);
-      assertThat(get("/catalog/products?page=abc").status()).isEqualTo(400);
-      assertThat(get("/catalog/products?sort=title,asc").status()).isEqualTo(400);
-      assertThat(get("/catalog/products?availability=SOLD_OUT").status()).isEqualTo(400);
-      assertThat(get("/catalog/products?size=100&sort=price,desc&availability=AVAILABLE").status()).isEqualTo(200);
+      assertThat(get("/api/catalog/products?size=101").status()).isEqualTo(400);
+      assertThat(get("/api/catalog/products?size=0").status()).isEqualTo(400);
+      assertThat(get("/api/catalog/products?page=-1").status()).isEqualTo(400);
+      assertThat(get("/api/catalog/products?page=abc").status()).isEqualTo(400);
+      assertThat(get("/api/catalog/products?sort=title,asc").status()).isEqualTo(400);
+      assertThat(get("/api/catalog/products?availability=SOLD_OUT").status()).isEqualTo(400);
+      assertThat(get("/api/catalog/products?size=100&sort=price,desc&availability=AVAILABLE").status()).isEqualTo(200);
    }
 
    @Test
@@ -299,7 +299,7 @@ class CatalogIntegrationTest {
          pool.shutdown();
       }
 
-      JsonNode product = get("/catalog/products/" + id).body();
+      JsonNode product = get("/api/catalog/products/" + id).body();
       assertThat(product.path("title").asText()).isEqualTo("Busy v2");
       assertThat(product.path("skus")).hasSize(2);
       assertThat(product.path("lowestSkuPrice").decimalValue()).isEqualByComparingTo("7.00");
@@ -308,6 +308,6 @@ class CatalogIntegrationTest {
 
       // sku2 is the only one left with stock; taking it away flips the product even though sku1 is reserved out
       deliver(new Inventory.AvailabilityChanged(sku2, 4, 4, 0, 2));
-      assertThat(get("/catalog/products/" + id).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
+      assertThat(get("/api/catalog/products/" + id).body().path("availability").asText()).isEqualTo("OUT_OF_STOCK");
    }
 }

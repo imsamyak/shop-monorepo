@@ -96,7 +96,7 @@ class AssetIntegrationTest {
          body.write("\r\n".getBytes(StandardCharsets.UTF_8));
       }
       body.write(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
-      HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/assets/images"))
+      HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/assets/images"))
          .header("Content-Type", "multipart/form-data; boundary=" + boundary)
          .POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray()));
       if (token != null) {
@@ -107,7 +107,7 @@ class AssetIntegrationTest {
 
    private Reply delete(String token, String key) throws Exception {
       HttpRequest.Builder request = HttpRequest.newBuilder(
-            URI.create("http://localhost:" + port + "/assets/images?key=" + key)).DELETE();
+            URI.create("http://localhost:" + port + "/api/assets/images?key=" + key)).DELETE();
       if (token != null) {
          request.header("Authorization", "Bearer " + token);
       }

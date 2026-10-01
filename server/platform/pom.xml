@@ -21,6 +21,7 @@
     <modules>
         <!--modules-->
         <module>module/shared</module>
+        <module>module/web</module>
         <module>module/security</module>
         <module>module/messaging</module>
         <module>module/asset</module>
@@ -41,6 +42,11 @@
             <dependency>
                 <groupId>com.ecom</groupId>
                 <artifactId>shop-platform-shared</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ecom</groupId>
+                <artifactId>shop-platform-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

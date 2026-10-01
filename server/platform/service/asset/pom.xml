@@ -27,6 +27,11 @@
 
         <dependency>
             <groupId>com.ecom</groupId>
+            <artifactId>shop-platform-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ecom</groupId>
             <artifactId>shop-platform-asset</artifactId>
         </dependency>
 

@@ -71,12 +71,12 @@ class ListingIntegrationTest {
    }
 
    private Reply createProduct(UUID seller, String title) throws Exception {
-      return call("POST", "/products",
+      return call("POST", "/api/products",
          "{\"title\":\"" + title + "\",\"description\":\"A product\",\"defaultPrice\":100.00}", TestTokens.seller(seller));
    }
 
    private Reply createSku(String productId, String propertiesJson) throws Exception {
-      return call("POST", "/products/" + productId + "/skus",
+      return call("POST", "/api/products/" + productId + "/skus",
          "{\"price\":25.50,\"properties\":" + propertiesJson + "}");
    }
 
@@ -102,8 +102,8 @@ class ListingIntegrationTest {
    void productAndSkuEventsCarryTheirGrowingVersionAndTheSkuProperties() throws Exception {
       String productId = createProduct(newSeller(), "Laptop Pro").text("id");
       Reply sku = createSku(productId, "{\"color\":\"red\"}");
-      call("PATCH", "/products/" + productId, "{\"version\":0,\"title\":\"Laptop Pro 2\"}");
-      call("PUT", "/products/" + productId + "/skus/" + sku.body().path("skuId").asLong(),
+      call("PATCH", "/api/products/" + productId, "{\"version\":0,\"title\":\"Laptop Pro 2\"}");
+      call("PUT", "/api/products/" + productId + "/skus/" + sku.body().path("skuId").asLong(),
          "{\"version\":0,\"price\":30.00}");
 
       List<JsonNode> product = events("product", productId);
@@ -132,13 +132,13 @@ class ListingIntegrationTest {
 
    @Test
    void onlySellersCreateProductsAndTheyOwnWhatTheyCreate() throws Exception {
-      assertThat(call("POST", "/products", NEW_PRODUCT, null).status()).as("anonymous").isEqualTo(401);
-      assertThat(call("POST", "/products", NEW_PRODUCT, "not.a.token").status()).as("invalid token").isEqualTo(401);
-      assertThat(call("POST", "/products", NEW_PRODUCT, TestTokens.buyer()).status()).as("buyer").isEqualTo(403);
-      assertThat(call("POST", "/products", NEW_PRODUCT, TestTokens.admin()).status()).as("admin has no seller").isEqualTo(403);
+      assertThat(call("POST", "/api/products", NEW_PRODUCT, null).status()).as("anonymous").isEqualTo(401);
+      assertThat(call("POST", "/api/products", NEW_PRODUCT, "not.a.token").status()).as("invalid token").isEqualTo(401);
+      assertThat(call("POST", "/api/products", NEW_PRODUCT, TestTokens.buyer()).status()).as("buyer").isEqualTo(403);
+      assertThat(call("POST", "/api/products", NEW_PRODUCT, TestTokens.admin()).status()).as("admin has no seller").isEqualTo(403);
 
       UUID seller = newSeller();
-      Reply created = call("POST", "/products", NEW_PRODUCT, TestTokens.seller(seller));
+      Reply created = call("POST", "/api/products", NEW_PRODUCT, TestTokens.seller(seller));
 
       assertThat(created.status()).isEqualTo(201);
       assertThat(created.text("sellerId")).as("taken from the token").isEqualTo(seller.toString());
@@ -151,26 +151,26 @@ class ListingIntegrationTest {
       String productId = createProduct(owner, "Laptop Pro").text("id");
       String body = "{\"version\":0,\"title\":\"Laptop Pro 2\"}";
 
-      assertThat(call("PATCH", "/products/" + productId, body, null).status()).isEqualTo(401);
-      assertThat(call("PATCH", "/products/" + productId, body, TestTokens.buyer()).status()).isEqualTo(403);
-      assertThat(call("PATCH", "/products/" + productId, body, other).status()).isEqualTo(403);
-      assertThat(call("POST", "/products/" + productId + "/skus", "{\"properties\":{}}", other).status()).isEqualTo(403);
-      assertThat(call("DELETE", "/products/" + productId + "?version=0", null, other).status()).isEqualTo(403);
+      assertThat(call("PATCH", "/api/products/" + productId, body, null).status()).isEqualTo(401);
+      assertThat(call("PATCH", "/api/products/" + productId, body, TestTokens.buyer()).status()).isEqualTo(403);
+      assertThat(call("PATCH", "/api/products/" + productId, body, other).status()).isEqualTo(403);
+      assertThat(call("POST", "/api/products/" + productId + "/skus", "{\"properties\":{}}", other).status()).isEqualTo(403);
+      assertThat(call("DELETE", "/api/products/" + productId + "?version=0", null, other).status()).isEqualTo(403);
 
-      Reply sku = call("POST", "/products/" + productId + "/skus", "{\"properties\":{\"color\":\"red\"}}", TestTokens.seller(owner));
+      Reply sku = call("POST", "/api/products/" + productId + "/skus", "{\"properties\":{\"color\":\"red\"}}", TestTokens.seller(owner));
       assertThat(sku.status()).isEqualTo(201);
-      String skuPath = "/products/" + productId + "/skus/" + sku.text("skuId");
+      String skuPath = "/api/products/" + productId + "/skus/" + sku.text("skuId");
       assertThat(call("PUT", skuPath, "{\"version\":0,\"price\":9.00}", other).status()).isEqualTo(403);
       assertThat(call("DELETE", skuPath + "?version=0", null, other).status()).isEqualTo(403);
 
-      assertThat(call("PATCH", "/products/" + productId, body, TestTokens.seller(owner)).status()).isEqualTo(200);
+      assertThat(call("PATCH", "/api/products/" + productId, body, TestTokens.seller(owner)).status()).isEqualTo(200);
       assertThat(call("PUT", skuPath, "{\"version\":0,\"price\":9.00}", TestTokens.admin()).status()).as("admin").isEqualTo(200);
-      assertThat(call("DELETE", "/products/" + productId + "?version=1", null, TestTokens.admin()).status()).isEqualTo(200);
+      assertThat(call("DELETE", "/api/products/" + productId + "?version=1", null, TestTokens.admin()).status()).isEqualTo(200);
    }
 
    @Test
    void browsersFromAnySiteMayCallTheApi() throws Exception {
-      HttpRequest preflight = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/products"))
+      HttpRequest preflight = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/products"))
          .method("OPTIONS", HttpRequest.BodyPublishers.noBody())
          .header("Origin", "https://shop.example.com")
          .header("Access-Control-Request-Method", "POST")
@@ -183,7 +183,7 @@ class ListingIntegrationTest {
       assertThat(answer.headers().firstValue("Access-Control-Allow-Methods").orElse("")).contains("POST").contains("PATCH");
       assertThat(answer.headers().firstValue("Access-Control-Allow-Headers").orElse("")).containsIgnoringCase("authorization");
 
-      HttpRequest refused = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/products"))
+      HttpRequest refused = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api/products"))
          .POST(HttpRequest.BodyPublishers.ofString(NEW_PRODUCT))
          .header("Content-Type", "application/json")
          .header("Origin", "https://shop.example.com")
@@ -212,22 +212,22 @@ class ListingIntegrationTest {
    @Test
    void imagesKeepTheOrderGivenAndAreReplacedClearedOrLeftAlone() throws Exception {
       UUID seller = newSeller();
-      Reply created = call("POST", "/products", "{\"title\":\"Laptop Pro\",\"description\":\"d\",\"defaultPrice\":10.00,\"images\":"
+      Reply created = call("POST", "/api/products", "{\"title\":\"Laptop Pro\",\"description\":\"d\",\"defaultPrice\":10.00,\"images\":"
          + json(img("c"), img("a"), img("b")) + "}", TestTokens.seller(seller));
       String id = created.text("id");
 
       assertThat(created.status()).isEqualTo(201);
       assertThat(texts(created.body().path("images"))).containsExactly(img("c"), img("a"), img("b"));
-      assertThat(texts(call("GET", "/products/" + id, null, null).body().path("images"))).as("read back in the same order")
+      assertThat(texts(call("GET", "/api/products/" + id, null, null).body().path("images"))).as("read back in the same order")
          .containsExactly(img("c"), img("a"), img("b"));
 
-      Reply replaced = call("PATCH", "/products/" + id, "{\"version\":0,\"title\":\"Laptop Pro\",\"images\":" + json(img("b"), img("c")) + "}");
+      Reply replaced = call("PATCH", "/api/products/" + id, "{\"version\":0,\"title\":\"Laptop Pro\",\"images\":" + json(img("b"), img("c")) + "}");
       assertThat(texts(replaced.body().path("images"))).containsExactly(img("b"), img("c"));
 
-      Reply untouched = call("PATCH", "/products/" + id, "{\"version\":1,\"title\":\"Laptop Pro 2\"}");
+      Reply untouched = call("PATCH", "/api/products/" + id, "{\"version\":1,\"title\":\"Laptop Pro 2\"}");
       assertThat(texts(untouched.body().path("images"))).as("not mentioned means unchanged").containsExactly(img("b"), img("c"));
 
-      Reply cleared = call("PATCH", "/products/" + id, "{\"version\":2,\"title\":\"Laptop Pro 2\",\"images\":null}");
+      Reply cleared = call("PATCH", "/api/products/" + id, "{\"version\":2,\"title\":\"Laptop Pro 2\",\"images\":null}");
       assertThat(cleared.body().path("images")).isEmpty();
 
       java.util.List<JsonNode> events = new java.util.ArrayList<>();
@@ -257,24 +257,24 @@ class ListingIntegrationTest {
          eleven[i] = img("p" + i);
       }
 
-      assertThat(call("POST", "/products", base + json(eleven) + "}", token).status()).as("more than 10").isEqualTo(400);
-      assertThat(call("POST", "/products", base + json(img("a"), img("a")) + "}", token).status()).as("twice").isEqualTo(400);
-      assertThat(call("POST", "/products", base + json("ftp://files.example.com/a.png") + "}", token).status()).isEqualTo(400);
-      assertThat(call("POST", "/products", base + json("not a url") + "}", token).status()).isEqualTo(400);
-      assertThat(call("POST", "/products", base + json("") + "}", token).status()).isEqualTo(400);
-      assertThat(call("POST", "/products", base + json("https://files.example.com/" + "x".repeat(500)) + "}", token).status()).as("too long").isEqualTo(400);
-      assertThat(call("POST", "/products", base + json(java.util.Arrays.copyOf(eleven, 10)) + "}", token).status()).isEqualTo(201);
+      assertThat(call("POST", "/api/products", base + json(eleven) + "}", token).status()).as("more than 10").isEqualTo(400);
+      assertThat(call("POST", "/api/products", base + json(img("a"), img("a")) + "}", token).status()).as("twice").isEqualTo(400);
+      assertThat(call("POST", "/api/products", base + json("ftp://files.example.com/a.png") + "}", token).status()).isEqualTo(400);
+      assertThat(call("POST", "/api/products", base + json("not a url") + "}", token).status()).isEqualTo(400);
+      assertThat(call("POST", "/api/products", base + json("") + "}", token).status()).isEqualTo(400);
+      assertThat(call("POST", "/api/products", base + json("https://files.example.com/" + "x".repeat(500)) + "}", token).status()).as("too long").isEqualTo(400);
+      assertThat(call("POST", "/api/products", base + json(java.util.Arrays.copyOf(eleven, 10)) + "}", token).status()).isEqualTo(201);
 
       String id = createProduct(newSeller(), "Phone Max").text("id");
-      assertThat(call("PATCH", "/products/" + id, "{\"version\":0,\"title\":\"Phone Max\",\"images\":" + json(img("a"), img("a")) + "}").status()).isEqualTo(400);
+      assertThat(call("PATCH", "/api/products/" + id, "{\"version\":0,\"title\":\"Phone Max\",\"images\":" + json(img("a"), img("a")) + "}").status()).isEqualTo(400);
    }
 
    @Test
    void readingIsPublic() throws Exception {
       String productId = createProduct(newSeller(), "Laptop Pro").text("id");
 
-      assertThat(call("GET", "/products/" + productId, null, null).status()).isEqualTo(200);
-      assertThat(call("GET", "/products", null, null).status()).isEqualTo(200);
+      assertThat(call("GET", "/api/products/" + productId, null, null).status()).isEqualTo(200);
+      assertThat(call("GET", "/api/products", null, null).status()).isEqualTo(200);
    }
 
    @Test
@@ -310,7 +310,7 @@ class ListingIntegrationTest {
    void staleVersionsAreAConflictNotA500() throws Exception {
       String id = createProduct(newSeller(), "Laptop Pro").text("id");
 
-      Reply stale = call("PUT", "/products/" + id, "{\"version\":99,\"title\":\"Renamed title\"}");
+      Reply stale = call("PUT", "/api/products/" + id, "{\"version\":99,\"title\":\"Renamed title\"}");
 
       assertThat(stale.status()).isEqualTo(409);
       assertThat(stale.text("errorCode")).isEqualTo("VERSION_CONFLICT");
@@ -321,12 +321,12 @@ class ListingIntegrationTest {
       Reply created = createProduct(newSeller(), "Laptop Pro");
       String id = created.text("id");
 
-      Reply omitted = call("PATCH", "/products/" + id, "{\"version\":0,\"title\":\"Laptop Pro 2\"}");
+      Reply omitted = call("PATCH", "/api/products/" + id, "{\"version\":0,\"title\":\"Laptop Pro 2\"}");
       assertThat(omitted.status()).isEqualTo(200);
       assertThat(omitted.text("description")).isEqualTo("A product");
 
       long version = omitted.body().path("version").asLong();
-      Reply cleared = call("PATCH", "/products/" + id,
+      Reply cleared = call("PATCH", "/api/products/" + id,
          "{\"version\":" + version + ",\"title\":\"Laptop Pro 2\",\"description\":null}");
       assertThat(cleared.status()).isEqualTo(200);
       assertThat(cleared.body().path("description").isNull()).isTrue();
@@ -336,17 +336,17 @@ class ListingIntegrationTest {
    void aTooLongDescriptionInAPatchIsRejected() throws Exception {
       String id = createProduct(newSeller(), "Laptop Pro").text("id");
 
-      Reply tooLong = call("PATCH", "/products/" + id, "{\"version\":0,\"description\":\"" + "x".repeat(201) + "\"}");
+      Reply tooLong = call("PATCH", "/api/products/" + id, "{\"version\":0,\"description\":\"" + "x".repeat(201) + "\"}");
 
       assertThat(tooLong.status()).isEqualTo(400);
    }
 
    @Test
    void frameworkErrorsKeepTheirProperStatus() throws Exception {
-      assertThat(call("POST", "/products", "{not json", TestTokens.seller(newSeller())).status()).isEqualTo(400);
+      assertThat(call("POST", "/api/products", "{not json", TestTokens.seller(newSeller())).status()).isEqualTo(400);
       assertThat(call("GET", "/nope", null).status()).isEqualTo(404);
-      assertThat(call("PUT", "/products/not-a-uuid", "{\"version\":0,\"title\":\"Valid title\"}").status()).isEqualTo(400);
-      assertThat(call("DELETE", "/products", null).status()).isEqualTo(405);
+      assertThat(call("PUT", "/api/products/not-a-uuid", "{\"version\":0,\"title\":\"Valid title\"}").status()).isEqualTo(400);
+      assertThat(call("DELETE", "/api/products", null).status()).isEqualTo(405);
    }
 
    // -------------------------------------------------------------------- SKUs
@@ -384,7 +384,7 @@ class ListingIntegrationTest {
       createSku(productId, "{\"color\":\"red\"}");
       Reply blue = createSku(productId, "{\"color\":\"blue\"}");
 
-      Reply update = call("PUT", "/products/" + productId + "/skus/" + blue.body().path("skuId").asLong(),
+      Reply update = call("PUT", "/api/products/" + productId + "/skus/" + blue.body().path("skuId").asLong(),
          "{\"version\":" + blue.body().path("version").asLong() + ",\"properties\":{\"add\":{\"color\":\"red\"}}}");
 
       assertThat(update.status()).isEqualTo(409);
@@ -396,12 +396,12 @@ class ListingIntegrationTest {
       Reply sku = createSku(productId, "{\"color\":\"red\"}");
       long skuId = sku.body().path("skuId").asLong();
 
-      Reply deleted = call("DELETE", "/products/" + productId + "/skus/" + skuId + "?version=" + sku.body().path("version").asLong(), null);
+      Reply deleted = call("DELETE", "/api/products/" + productId + "/skus/" + skuId + "?version=" + sku.body().path("version").asLong(), null);
       assertThat(deleted.status()).isEqualTo(200);
 
       Boolean flag = jdbc.queryForObject("select is_deleted from product_skus where id = ?", Boolean.class, skuId);
       assertThat(flag).isTrue();
-      assertThat(call("DELETE", "/products/" + productId + "/skus/" + skuId + "?version=1", null).status()).isEqualTo(404);
+      assertThat(call("DELETE", "/api/products/" + productId + "/skus/" + skuId + "?version=1", null).status()).isEqualTo(404);
       assertThat(createSku(productId, "{\"color\":\"red\"}").status()).isEqualTo(201);
    }
 
@@ -412,7 +412,7 @@ class ListingIntegrationTest {
       long sku1 = createSku(productId, "{\"color\":\"red\"}").body().path("skuId").asLong();
       long sku2 = createSku(productId, "{\"color\":\"blue\"}").body().path("skuId").asLong();
 
-      Reply deleted = call("DELETE", "/products/" + productId + "?version=0", null);
+      Reply deleted = call("DELETE", "/api/products/" + productId + "?version=0", null);
 
       assertThat(deleted.status()).isEqualTo(200);
       List<Long> deletedSkus = List.of(deleted.body().path("deletedSkuIds").get(0).asLong(),
@@ -429,7 +429,7 @@ class ListingIntegrationTest {
          String.class, productId, String.valueOf(sku1), String.valueOf(sku2));
       assertThat(deleteEvents).hasSize(3);
 
-      assertThat(call("PUT", "/products/" + productId, "{\"version\":1,\"title\":\"Renamed title\"}").status()).isEqualTo(404);
+      assertThat(call("PUT", "/api/products/" + productId, "{\"version\":1,\"title\":\"Renamed title\"}").status()).isEqualTo(404);
       assertThat(createSku(productId, "{}").status()).isEqualTo(404);
    }
 
@@ -437,7 +437,7 @@ class ListingIntegrationTest {
    void skuPriceCannotBeNegative() throws Exception {
       String productId = createProduct(newSeller(), "Laptop Pro").text("id");
 
-      Reply negative = call("POST", "/products/" + productId + "/skus", "{\"price\":-1,\"properties\":{}}");
+      Reply negative = call("POST", "/api/products/" + productId + "/skus", "{\"price\":-1,\"properties\":{}}");
 
       assertThat(negative.status()).isEqualTo(400);
    }

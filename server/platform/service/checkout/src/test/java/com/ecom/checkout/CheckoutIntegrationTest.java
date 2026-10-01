@@ -59,9 +59,9 @@ class CheckoutIntegrationTest {
    private static HttpServer startStub() {
       try {
          HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-         server.createContext("/skus", CheckoutIntegrationTest::catalog);
-         server.createContext("/inventory/reservations", CheckoutIntegrationTest::inventory);
-         server.createContext("/auth/token", exchange -> respond(exchange, 200,
+         server.createContext("/api/skus", CheckoutIntegrationTest::catalog);
+         server.createContext("/api/inventory/reservations", CheckoutIntegrationTest::inventory);
+         server.createContext("/api/auth/token", exchange -> respond(exchange, 200,
             "{\"accessToken\":\"stub-service-token\",\"tokenType\":\"Bearer\",\"expiresIn\":300}"));
          server.start();
          return server;
@@ -102,7 +102,7 @@ class CheckoutIntegrationTest {
             respond(exchange, 200, "{}");
          }
          default -> {
-            if (exchange.getRequestURI().getPath().equals("/inventory/reservations")) {
+            if (exchange.getRequestURI().getPath().equals("/api/inventory/reservations")) {
                StringBuilder reservations = new StringBuilder("{\"reservations\":[");
                JsonNode items = JSON.readTree(request).path("items");
                for (int i = 0; i < items.size(); i++) {
@@ -185,7 +185,7 @@ class CheckoutIntegrationTest {
    }
 
    private Reply draft(UUID customer, String itemsJson) throws Exception {
-      return call("POST", "/checkouts", "{\"items\":" + itemsJson + "}", TestTokens.buyer(customer));
+      return call("POST", "/api/checkouts", "{\"items\":" + itemsJson + "}", TestTokens.buyer(customer));
    }
 
    private String draftId(UUID customer) throws Exception {
@@ -206,7 +206,7 @@ class CheckoutIntegrationTest {
    @Test
    void eachCheckoutEventCarriesTheCheckoutVersionAfterItsChange() throws Exception {
       String id = draftId(UUID.randomUUID());
-      call("POST", "/checkouts/" + id + "/commit", null);
+      call("POST", "/api/checkouts/" + id + "/commit", null);
 
       long drafted = JSON.readTree(events(id, "drafted").get(0)).path("data").path("version").asLong();
       long committed = JSON.readTree(events(id, "committed").get(0)).path("data").path("version").asLong();
@@ -220,7 +220,7 @@ class CheckoutIntegrationTest {
    void draftUsesCatalogPricesAndTheGivenCustomerAndIgnoresClientSuppliedPrices() throws Exception {
       UUID customer = UUID.randomUUID();
 
-      Reply reply = call("POST", "/checkouts",
+      Reply reply = call("POST", "/api/checkouts",
          "{\"items\":[{\"skuId\":2,\"quantity\":3,\"unitPrice\":0.01},"
             + "{\"skuId\":3,\"quantity\":1,\"unitPrice\":0.01}]}", TestTokens.buyer(customer));
 
@@ -284,7 +284,7 @@ class CheckoutIntegrationTest {
 
       assertThat(draft(customer, "[]").status()).isEqualTo(400);
       assertThat(draft(customer, "[{\"skuId\":2,\"quantity\":0}]").status()).isEqualTo(400);
-      assertThat(call("POST", "/checkouts",
+      assertThat(call("POST", "/api/checkouts",
          "{\"items\":[{\"skuId\":2,\"quantity\":1}],\"ttlSeconds\":999999}", TestTokens.buyer(customer)).status()).isEqualTo(400);
       assertThat(inventoryCalls).isEmpty();
    }
@@ -293,12 +293,12 @@ class CheckoutIntegrationTest {
    void onlySignedInUsersCanDraftAndTheCustomerIsTheCaller() throws Exception {
       String items = "{\"items\":[{\"skuId\":2,\"quantity\":1}]}";
 
-      assertThat(call("POST", "/checkouts", items, null).status()).as("anonymous").isEqualTo(401);
-      assertThat(call("POST", "/checkouts", items, TestTokens.system()).status()).as("a service is not a customer").isEqualTo(403);
+      assertThat(call("POST", "/api/checkouts", items, null).status()).as("anonymous").isEqualTo(401);
+      assertThat(call("POST", "/api/checkouts", items, TestTokens.system()).status()).as("a service is not a customer").isEqualTo(403);
       assertThat(inventoryCalls).isEmpty();
 
       UUID customer = UUID.randomUUID();
-      Reply reply = call("POST", "/checkouts", "{\"customerId\":\"" + UUID.randomUUID() + "\",\"items\":[{\"skuId\":2,\"quantity\":1}]}",
+      Reply reply = call("POST", "/api/checkouts", "{\"customerId\":\"" + UUID.randomUUID() + "\",\"items\":[{\"skuId\":2,\"quantity\":1}]}",
          TestTokens.buyer(customer));
       assertThat(reply.status()).isEqualTo(201);
       assertThat(reply.body().path("customerId").asText()).as("a customerId in the body is ignored").isEqualTo(customer.toString());
@@ -311,15 +311,15 @@ class CheckoutIntegrationTest {
       String other = TestTokens.buyer(UUID.randomUUID());
       inventoryCalls.clear();
 
-      assertThat(call("GET", "/checkouts/" + id, null, null).status()).isEqualTo(401);
-      assertThat(call("GET", "/checkouts/" + id, null, other).status()).isEqualTo(403);
-      assertThat(call("POST", "/checkouts/" + id + "/commit", null, other).status()).isEqualTo(403);
-      assertThat(call("POST", "/checkouts/" + id + "/cancel", null, other).status()).isEqualTo(403);
+      assertThat(call("GET", "/api/checkouts/" + id, null, null).status()).isEqualTo(401);
+      assertThat(call("GET", "/api/checkouts/" + id, null, other).status()).isEqualTo(403);
+      assertThat(call("POST", "/api/checkouts/" + id + "/commit", null, other).status()).isEqualTo(403);
+      assertThat(call("POST", "/api/checkouts/" + id + "/cancel", null, other).status()).isEqualTo(403);
       assertThat(inventoryCalls).as("nothing reached inventory").isEmpty();
 
-      assertThat(call("GET", "/checkouts/" + id, null, TestTokens.buyer(customer)).status()).isEqualTo(200);
-      assertThat(call("POST", "/checkouts/" + id + "/commit", null, TestTokens.buyer(customer)).status()).isEqualTo(200);
-      assertThat(call("GET", "/checkouts/" + id, null, TestTokens.admin()).status()).isEqualTo(200);
+      assertThat(call("GET", "/api/checkouts/" + id, null, TestTokens.buyer(customer)).status()).isEqualTo(200);
+      assertThat(call("POST", "/api/checkouts/" + id + "/commit", null, TestTokens.buyer(customer)).status()).isEqualTo(200);
+      assertThat(call("GET", "/api/checkouts/" + id, null, TestTokens.admin()).status()).isEqualTo(200);
    }
 
    // ---- reading ------------------------------------------------------------------------------------------------
@@ -329,11 +329,11 @@ class CheckoutIntegrationTest {
       UUID customer = UUID.randomUUID();
       String id = draftId(customer);
 
-      Reply found = call("GET", "/checkouts/" + id, null);
+      Reply found = call("GET", "/api/checkouts/" + id, null);
       assertThat(found.status()).isEqualTo(200);
       assertThat(found.body().path("customerId").asText()).isEqualTo(customer.toString());
 
-      assertThat(call("GET", "/checkouts/" + UUID.randomUUID(), null).status()).isEqualTo(404);
+      assertThat(call("GET", "/api/checkouts/" + UUID.randomUUID(), null).status()).isEqualTo(404);
    }
 
    // ---- commit -------------------------------------------------------------------------------------------------
@@ -344,13 +344,13 @@ class CheckoutIntegrationTest {
       String id = drafted.body().path("checkoutId").asText();
       inventoryCalls.clear();
 
-      Reply first = call("POST", "/checkouts/" + id + "/commit", null);
-      Reply second = call("POST", "/checkouts/" + id + "/commit", null);
+      Reply first = call("POST", "/api/checkouts/" + id + "/commit", null);
+      Reply second = call("POST", "/api/checkouts/" + id + "/commit", null);
 
       assertThat(first.status()).isEqualTo(200);
       assertThat(first.body().path("status").asText()).isEqualTo("COMMITTED");
       assertThat(second.status()).isEqualTo(200);
-      assertThat(inventoryCalls).as("the retry did not call inventory again").containsExactly("/inventory/reservations/commit");
+      assertThat(inventoryCalls).as("the retry did not call inventory again").containsExactly("/api/inventory/reservations/commit");
       List<String> committed = events(id, "committed");
       assertThat(committed).as("one event, not one per call").hasSize(1);
       JsonNode data = JSON.readTree(committed.get(0)).path("data");
@@ -363,7 +363,7 @@ class CheckoutIntegrationTest {
       String id = draftId(UUID.randomUUID());
       inventoryMode = InventoryMode.REJECT;
 
-      Reply commit = call("POST", "/checkouts/" + id + "/commit", null);
+      Reply commit = call("POST", "/api/checkouts/" + id + "/commit", null);
 
       assertThat(commit.status()).isEqualTo(422);
       assertThat(status(id)).isEqualTo("DRAFT");
@@ -376,7 +376,7 @@ class CheckoutIntegrationTest {
       jdbc.update("update checkouts set expires_at = ? where id = ?", Timestamp.from(Instant.now().minusSeconds(60)), UUID.fromString(id));
       inventoryCalls.clear();
 
-      Reply commit = call("POST", "/checkouts/" + id + "/commit", null);
+      Reply commit = call("POST", "/api/checkouts/" + id + "/commit", null);
 
       assertThat(commit.status()).isEqualTo(422);
       assertThat(inventoryCalls).isEmpty();
@@ -389,14 +389,14 @@ class CheckoutIntegrationTest {
       String id = draftId(UUID.randomUUID());
       inventoryCalls.clear();
 
-      Reply first = call("POST", "/checkouts/" + id + "/cancel", null);
-      Reply second = call("POST", "/checkouts/" + id + "/cancel", null);
+      Reply first = call("POST", "/api/checkouts/" + id + "/cancel", null);
+      Reply second = call("POST", "/api/checkouts/" + id + "/cancel", null);
 
       assertThat(first.body().path("status").asText()).isEqualTo("CANCELLED");
       assertThat(second.status()).isEqualTo(200);
-      assertThat(inventoryCalls).containsExactly("/inventory/reservations/release");
+      assertThat(inventoryCalls).containsExactly("/api/inventory/reservations/release");
       assertThat(events(id, "cancelled")).hasSize(1);
-      assertThat(call("POST", "/checkouts/" + id + "/commit", null).status()).as("cannot commit a cancelled checkout").isEqualTo(422);
+      assertThat(call("POST", "/api/checkouts/" + id + "/commit", null).status()).as("cannot commit a cancelled checkout").isEqualTo(422);
    }
 
    @Test
@@ -404,13 +404,13 @@ class CheckoutIntegrationTest {
       String id = draftId(UUID.randomUUID());
       inventoryMode = InventoryMode.DOWN;
 
-      Reply cancel = call("POST", "/checkouts/" + id + "/cancel", null);
+      Reply cancel = call("POST", "/api/checkouts/" + id + "/cancel", null);
 
       assertThat(cancel.status()).isEqualTo(503);
       assertThat(status(id)).isEqualTo("DRAFT");
 
       inventoryMode = InventoryMode.OK;
-      assertThat(call("POST", "/checkouts/" + id + "/cancel", null).status()).as("the retry succeeds").isEqualTo(200);
+      assertThat(call("POST", "/api/checkouts/" + id + "/cancel", null).status()).as("the retry succeeds").isEqualTo(200);
    }
 
    // ---- expiry -------------------------------------------------------------------------------------------------

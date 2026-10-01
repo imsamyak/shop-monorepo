@@ -11,7 +11,7 @@ spring:
 ecom:
   security:
     jwt:
-      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/.well-known/jwks.json}
+      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/api/.well-known/jwks.json}
   # The checkout events this service builds orders from go through the RabbitMQ client the profile calls "core";
   # infra says where it is. Nothing is published, so there is no outbox client.
   inbox:

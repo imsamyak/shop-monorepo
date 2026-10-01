@@ -44,7 +44,7 @@ public class ListingClientAdapter implements LoadSkuPricePort {
 
       String body = ClientSupport.call(DEPENDENCY,
             () -> restClient.get()
-                  .uri(uri -> uri.path("/skus").queryParam("skuIds", ids).build())
+                  .uri(uri -> uri.path("/api/skus").queryParam("skuIds", ids).build())
                   .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.token())
                   .retrieve()
                   .body(String.class),

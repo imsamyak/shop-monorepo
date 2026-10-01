@@ -6,7 +6,7 @@ export type * from './types.js';
 
 export const getOrder = useCase('GetOrder')
   .service('order')
-  .get('/orders/{orderId}')
+  .get('/api/orders/{orderId}')
   .params(orderParams)
   .returns<OrderResponse>()
   .authRequired()
@@ -14,7 +14,7 @@ export const getOrder = useCase('GetOrder')
 
 export const listOrders = useCase('ListOrders')
   .service('order')
-  .get('/orders')
+  .get('/api/orders')
   .query(listOrdersQuery)
   .returns<OrdersResponse>()
   .authRequired()

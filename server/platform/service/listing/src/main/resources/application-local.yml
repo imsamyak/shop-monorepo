@@ -10,13 +10,13 @@ spring:
 
 listing:
   images:
-    # only files uploaded through the asset service (local S3 stand-in) can be attached to a product
-    allowed-prefixes: ${LISTING_IMAGE_PREFIXES:http://localhost:9090/ecom-assets/images/}
+    # only files uploaded through the asset service (the dev bucket) can be attached to a product
+    allowed-prefixes: ${LISTING_IMAGE_PREFIXES:https://s3.ap-south-1.amazonaws.com/imsamyak.shop-asset-dev/images/}
 
 ecom:
   security:
     jwt:
-      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/.well-known/jwks.json}
+      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/api/.well-known/jwks.json}
   outbox:
     # Publish the events through the RabbitMQ client the profile calls "core"; infra says where it is.
     client: rabbit.core

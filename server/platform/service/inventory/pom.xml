@@ -32,6 +32,11 @@
 
         <dependency>
             <groupId>com.ecom</groupId>
+            <artifactId>shop-platform-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ecom</groupId>
             <artifactId>shop-platform-outbox</artifactId>
         </dependency>
 

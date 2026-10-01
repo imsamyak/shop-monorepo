@@ -106,7 +106,7 @@ class IdentityIntegrationTest {
    }
 
    private Reply register(String email) throws Exception {
-      Reply reply = call("POST", "/auth/register", null, credentials(email, PASSWORD));
+      Reply reply = call("POST", "/api/auth/register", null, credentials(email, PASSWORD));
       assertThat(reply.status()).isEqualTo(201);
       return reply;
    }
@@ -126,11 +126,11 @@ class IdentityIntegrationTest {
       assertThat(registered.text("tokenType")).isEqualTo("Bearer");
       assertThat(registered.body().path("user").path("role").asText()).isEqualTo("ROLE_BUYER");
 
-      Reply login = call("POST", "/auth/login", null, credentials(email, PASSWORD));
+      Reply login = call("POST", "/api/auth/login", null, credentials(email, PASSWORD));
       assertThat(login.status()).isEqualTo(200);
       assertThat(login.raw().headers().firstValue("Cache-Control").orElse("")).contains("no-store");
 
-      Reply me = call("GET", "/auth/me", login.text("accessToken"), null);
+      Reply me = call("GET", "/api/auth/me", login.text("accessToken"), null);
       assertThat(me.status()).isEqualTo(200);
       assertThat(me.text("email")).isEqualTo(email);
       assertThat(me.text("id")).isEqualTo(login.body().path("user").path("id").asText());
@@ -139,8 +139,8 @@ class IdentityIntegrationTest {
 
    @Test
    void meRequiresAValidAccessToken() throws Exception {
-      assertThat(call("GET", "/auth/me", null, null).status()).isEqualTo(401);
-      assertThat(call("GET", "/auth/me", "garbage", null).status()).isEqualTo(401);
+      assertThat(call("GET", "/api/auth/me", null, null).status()).isEqualTo(401);
+      assertThat(call("GET", "/api/auth/me", "garbage", null).status()).isEqualTo(401);
    }
 
    @Test
@@ -148,15 +148,15 @@ class IdentityIntegrationTest {
       String email = uniqueEmail();
       register(email);
 
-      assertThat(call("POST", "/auth/login", null, credentials(email, "wrong password!")).status()).isEqualTo(401);
-      assertThat(call("POST", "/auth/register", null, credentials(email, PASSWORD)).status()).isEqualTo(409);
-      assertThat(call("POST", "/auth/register", null, credentials(uniqueEmail(), "short")).status()).isEqualTo(400);
-      assertThat(call("POST", "/auth/register", null, "{}").status()).isEqualTo(400);
+      assertThat(call("POST", "/api/auth/login", null, credentials(email, "wrong password!")).status()).isEqualTo(401);
+      assertThat(call("POST", "/api/auth/register", null, credentials(email, PASSWORD)).status()).isEqualTo(409);
+      assertThat(call("POST", "/api/auth/register", null, credentials(uniqueEmail(), "short")).status()).isEqualTo(400);
+      assertThat(call("POST", "/api/auth/register", null, "{}").status()).isEqualTo(400);
    }
 
    @Test
    void registrationNeverGrantsAPrivilegedRole() throws Exception {
-      Reply reply = call("POST", "/auth/register", null,
+      Reply reply = call("POST", "/api/auth/register", null,
          "{\"email\":\"" + uniqueEmail() + "\",\"password\":\"" + PASSWORD + "\",\"role\":\"ROLE_ADMIN\"}");
 
       assertThat(reply.status()).isEqualTo(201);
@@ -167,18 +167,18 @@ class IdentityIntegrationTest {
    void anyoneCanSignUpAsASellerAndGetsASellerIdInTheirToken() throws Exception {
       String email = uniqueEmail();
 
-      Reply reply = call("POST", "/auth/register/seller", null, credentials(email, PASSWORD));
+      Reply reply = call("POST", "/api/auth/register/seller", null, credentials(email, PASSWORD));
 
       assertThat(reply.status()).isEqualTo(201);
       assertThat(reply.body().path("user").path("role").asText()).isEqualTo("ROLE_SELLER");
       String sellerId = reply.body().path("user").path("sellerId").asText();
       assertThat(sellerId).isNotBlank();
-      Reply me = call("GET", "/auth/me", reply.body().path("accessToken").asText(), null);
+      Reply me = call("GET", "/api/auth/me", reply.body().path("accessToken").asText(), null);
       assertThat(me.status()).isEqualTo(200);
       assertThat(me.body().path("sellerId").asText()).isEqualTo(sellerId);
-      assertThat(call("POST", "/auth/login", null, credentials(email, PASSWORD)).status()).isEqualTo(200);
-      assertThat(call("POST", "/auth/register/seller", null, credentials(email, PASSWORD)).status()).as("taken").isEqualTo(409);
-      assertThat(call("POST", "/auth/register/seller", null, credentials(uniqueEmail(), "short")).status()).isEqualTo(400);
+      assertThat(call("POST", "/api/auth/login", null, credentials(email, PASSWORD)).status()).isEqualTo(200);
+      assertThat(call("POST", "/api/auth/register/seller", null, credentials(email, PASSWORD)).status()).as("taken").isEqualTo(409);
+      assertThat(call("POST", "/api/auth/register/seller", null, credentials(uniqueEmail(), "short")).status()).isEqualTo(400);
    }
 
    @Test
@@ -187,18 +187,18 @@ class IdentityIntegrationTest {
       register(email);
 
       for (int i = 0; i < 3; i++) {
-         assertThat(call("POST", "/auth/login", null, credentials(email, "wrong password!")).status()).isEqualTo(401);
+         assertThat(call("POST", "/api/auth/login", null, credentials(email, "wrong password!")).status()).isEqualTo(401);
       }
 
-      Reply locked = call("POST", "/auth/login", null, credentials(email, PASSWORD));
+      Reply locked = call("POST", "/api/auth/login", null, credentials(email, PASSWORD));
       assertThat(locked.status()).isEqualTo(401);
       assertThat(locked.text("detail")).contains("Too many");
    }
 
    @Test
    void noAccountExistsUntilSomeoneCreatesIt() throws Exception {
-      assertThat(call("POST", "/auth/login", null, credentials("admin@ecom.dev", "demo-password-123")).status()).isEqualTo(401);
-      assertThat(call("POST", "/auth/login", null, credentials("admin@shop.dev", "demo-password-123")).status()).isEqualTo(401);
+      assertThat(call("POST", "/api/auth/login", null, credentials("admin@ecom.dev", "demo-password-123")).status()).isEqualTo(401);
+      assertThat(call("POST", "/api/auth/login", null, credentials("admin@shop.dev", "demo-password-123")).status()).isEqualTo(401);
    }
 
    @Test
@@ -207,15 +207,15 @@ class IdentityIntegrationTest {
       String sellerEmail = uniqueEmail();
       String body = credentials(sellerEmail, PASSWORD);
 
-      assertThat(call("POST", "/auth/admin/sellers", null, body).status()).isEqualTo(401);
-      assertThat(call("POST", "/auth/admin/sellers", buyer.text("accessToken"), body).status()).isEqualTo(403);
+      assertThat(call("POST", "/api/auth/admin/sellers", null, body).status()).isEqualTo(401);
+      assertThat(call("POST", "/api/auth/admin/sellers", buyer.text("accessToken"), body).status()).isEqualTo(403);
 
-      Reply created = call("POST", "/auth/admin/sellers", adminToken(), body);
+      Reply created = call("POST", "/api/auth/admin/sellers", adminToken(), body);
       assertThat(created.status()).isEqualTo(201);
       assertThat(created.text("role")).isEqualTo("ROLE_SELLER");
       assertThat(created.text("sellerId")).isEqualTo(created.text("id"));
 
-      Reply sellerLogin = call("POST", "/auth/login", null, body);
+      Reply sellerLogin = call("POST", "/api/auth/login", null, body);
       assertThat(sellerLogin.status()).isEqualTo(200);
       assertThat(sellerLogin.body().path("user").path("sellerId").asText()).isEqualTo(created.text("id"));
    }
@@ -224,7 +224,7 @@ class IdentityIntegrationTest {
    void theJwksVerifiesTokensTheServiceIssued() throws Exception {
       Reply session = register(uniqueEmail());
 
-      Reply jwks = call("GET", "/.well-known/jwks.json", null, null);
+      Reply jwks = call("GET", "/api/.well-known/jwks.json", null, null);
       assertThat(jwks.status()).isEqualTo(200);
       JsonNode key = jwks.body().path("keys").get(0);
       assertThat(key.path("kty").asText()).isEqualTo("RSA");
@@ -239,17 +239,17 @@ class IdentityIntegrationTest {
 
    @Test
    void serviceTokensComeFromClientCredentials() throws Exception {
-      Reply ok = call("POST", "/auth/token", null, "{\"clientId\":\"checkout-service\",\"clientSecret\":\"test-client-secret\"}");
+      Reply ok = call("POST", "/api/auth/token", null, "{\"clientId\":\"checkout-service\",\"clientSecret\":\"test-client-secret\"}");
       assertThat(ok.status()).isEqualTo(200);
       assertThat(ok.body().path("expiresIn").asLong()).isEqualTo(300);
 
-      Reply jwks = call("GET", "/.well-known/jwks.json", null, null);
+      Reply jwks = call("GET", "/api/.well-known/jwks.json", null, null);
       JsonNode key = jwks.body().path("keys").get(0);
       PublicKey publicKey = RsaKeys.fromJwk(key.path("n").asText(), key.path("e").asText());
       var principal = new RsaJwtVerifier(kid -> publicKey, "ecom-identity").verify(ok.text("accessToken")).orElseThrow();
       assertThat(principal.hasRole(UserRole.ROLE_SYSTEM)).isTrue();
 
-      assertThat(call("POST", "/auth/token", null, "{\"clientId\":\"checkout-service\",\"clientSecret\":\"nope\"}").status()).isEqualTo(401);
+      assertThat(call("POST", "/api/auth/token", null, "{\"clientId\":\"checkout-service\",\"clientSecret\":\"nope\"}").status()).isEqualTo(401);
    }
 
    @Test
@@ -259,8 +259,8 @@ class IdentityIntegrationTest {
       String expired = signer.sign(admin, Duration.ofHours(-1));
       String body = credentials(uniqueEmail(), PASSWORD);
 
-      assertThat(call("POST", "/auth/admin/sellers", forged, body).status()).isEqualTo(401);
-      assertThat(call("POST", "/auth/admin/sellers", expired, body).status()).isEqualTo(401);
+      assertThat(call("POST", "/api/auth/admin/sellers", forged, body).status()).isEqualTo(401);
+      assertThat(call("POST", "/api/auth/admin/sellers", expired, body).status()).isEqualTo(401);
    }
 
    // --- logout ----------------------------------------------------------------------------------------------------
@@ -269,12 +269,12 @@ class IdentityIntegrationTest {
    void logoutAnswers204WithOrWithoutAToken() throws Exception {
       Reply session = register(uniqueEmail());
 
-      Reply withToken = call("POST", "/auth/logout", session.text("accessToken"), null);
+      Reply withToken = call("POST", "/api/auth/logout", session.text("accessToken"), null);
       assertThat(withToken.status()).isEqualTo(204);
       assertThat(withToken.raw().headers().firstValue("Cache-Control").orElse("")).contains("no-store");
 
-      assertThat(call("POST", "/auth/logout", null, null).status()).isEqualTo(204);
-      assertThat(call("POST", "/auth/logout", "an-expired-or-garbled-token", null).status()).isEqualTo(204);
+      assertThat(call("POST", "/api/auth/logout", null, null).status()).isEqualTo(204);
+      assertThat(call("POST", "/api/auth/logout", "an-expired-or-garbled-token", null).status()).isEqualTo(204);
    }
 
    // --- forgot and reset password ---------------------------------------------------------------------------------
@@ -284,25 +284,25 @@ class IdentityIntegrationTest {
       String email = uniqueEmail();
       register(email);
 
-      Reply forgot = call("POST", "/auth/forgot-password", null, "{\"email\":\"" + email + "\"}");
+      Reply forgot = call("POST", "/api/auth/forgot-password", null, "{\"email\":\"" + email + "\"}");
       assertThat(forgot.status()).isEqualTo(202);
       assertThat(forgot.raw().headers().firstValue("Cache-Control").orElse("")).contains("no-store");
       Mailbox.Mail mail = Mailbox.lastTo(email);
       assertThat(mail.link()).startsWith("http://storefront.test/reset-password?token=");
 
-      Reply reset = call("POST", "/auth/reset-password", null,
+      Reply reset = call("POST", "/api/auth/reset-password", null,
          "{\"token\":\"" + mail.token() + "\",\"newPassword\":\"a brand new password\"}");
       assertThat(reset.status()).isEqualTo(204);
 
-      assertThat(call("POST", "/auth/login", null, credentials(email, "a brand new password")).status()).isEqualTo(200);
-      assertThat(call("POST", "/auth/login", null, credentials(email, PASSWORD)).status()).isEqualTo(401);
+      assertThat(call("POST", "/api/auth/login", null, credentials(email, "a brand new password")).status()).isEqualTo(200);
+      assertThat(call("POST", "/api/auth/login", null, credentials(email, PASSWORD)).status()).isEqualTo(401);
    }
 
    @Test
    void forgotAnswersTheSameForAnUnknownAddress() throws Exception {
       int before = Mailbox.SENT.size();
 
-      Reply forgot = call("POST", "/auth/forgot-password", null, "{\"email\":\"" + uniqueEmail() + "\"}");
+      Reply forgot = call("POST", "/api/auth/forgot-password", null, "{\"email\":\"" + uniqueEmail() + "\"}");
 
       assertThat(forgot.status()).isEqualTo(202);
       assertThat(forgot.body().isEmpty()).isTrue();
@@ -313,35 +313,35 @@ class IdentityIntegrationTest {
    void aResetLinkWorksOnlyOnceOverHttp() throws Exception {
       String email = uniqueEmail();
       register(email);
-      call("POST", "/auth/forgot-password", null, "{\"email\":\"" + email + "\"}");
+      call("POST", "/api/auth/forgot-password", null, "{\"email\":\"" + email + "\"}");
       String body = "{\"token\":\"" + Mailbox.lastTo(email).token() + "\",\"newPassword\":\"a brand new password\"}";
 
-      assertThat(call("POST", "/auth/reset-password", null, body).status()).isEqualTo(204);
+      assertThat(call("POST", "/api/auth/reset-password", null, body).status()).isEqualTo(204);
 
-      Reply again = call("POST", "/auth/reset-password", null, body);
+      Reply again = call("POST", "/api/auth/reset-password", null, body);
       assertThat(again.status()).isEqualTo(400);
       assertThat(again.text("detail")).isEqualTo("The reset link is invalid or has expired");
    }
 
    @Test
    void resetRejectsAnUnknownTokenAndABadRequest() throws Exception {
-      assertThat(call("POST", "/auth/reset-password", null, "{\"token\":\"nope\",\"newPassword\":\"a brand new password\"}").status())
+      assertThat(call("POST", "/api/auth/reset-password", null, "{\"token\":\"nope\",\"newPassword\":\"a brand new password\"}").status())
          .isEqualTo(400);
-      assertThat(call("POST", "/auth/reset-password", null, "{\"token\":\"\",\"newPassword\":\"\"}").status()).isEqualTo(400);
-      assertThat(call("POST", "/auth/forgot-password", null, "{}").status()).isEqualTo(400);
-      assertThat(call("POST", "/auth/forgot-password", null, "{\"email\":\"not-an-email\"}").status()).isEqualTo(400);
+      assertThat(call("POST", "/api/auth/reset-password", null, "{\"token\":\"\",\"newPassword\":\"\"}").status()).isEqualTo(400);
+      assertThat(call("POST", "/api/auth/forgot-password", null, "{}").status()).isEqualTo(400);
+      assertThat(call("POST", "/api/auth/forgot-password", null, "{\"email\":\"not-an-email\"}").status()).isEqualTo(400);
    }
 
    @Test
    void aWeakNewPasswordIsRejectedAndTheLinkSurvives() throws Exception {
       String email = uniqueEmail();
       register(email);
-      call("POST", "/auth/forgot-password", null, "{\"email\":\"" + email + "\"}");
+      call("POST", "/api/auth/forgot-password", null, "{\"email\":\"" + email + "\"}");
       String token = Mailbox.lastTo(email).token();
 
-      assertThat(call("POST", "/auth/reset-password", null, "{\"token\":\"" + token + "\",\"newPassword\":\"short\"}").status())
+      assertThat(call("POST", "/api/auth/reset-password", null, "{\"token\":\"" + token + "\",\"newPassword\":\"short\"}").status())
          .isEqualTo(400);
-      assertThat(call("POST", "/auth/reset-password", null, "{\"token\":\"" + token + "\",\"newPassword\":\"a long enough one\"}").status())
+      assertThat(call("POST", "/api/auth/reset-password", null, "{\"token\":\"" + token + "\",\"newPassword\":\"a long enough one\"}").status())
          .isEqualTo(204);
    }
 }

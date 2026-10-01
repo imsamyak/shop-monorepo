@@ -22,4 +22,4 @@ identity:
     ttl-seconds: 1800
 
 # Identity verifies its own tokens with its own key (see IdentityConfig), so ecom.security.jwt is not set here.
-# Other services set ecom.security.jwt.issuer and either public-key or jwks-uri (this service's /.well-known/jwks.json).
+# Other services set ecom.security.jwt.issuer and either public-key or jwks-uri (this service's /api/.well-known/jwks.json).

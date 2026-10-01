@@ -1,12 +1,12 @@
 {
-  "note": "Every error is {title, status, errorCode, detail, instance, timestamp, invalidFields?}; invalidFields is {field: message} on 400. Send the access token as 'Authorization: Bearer <accessToken>'. 401 = no or bad token, 403 = signed in but not allowed. Updates and deletes need the record's current 'version' (409 when stale). Every service allows browser calls from any origin. Endpoints that only other services call (inventory reservations, GET /skus on listing) are not listed.",
+  "note": "Every error is {title, status, errorCode, detail, instance, timestamp, invalidFields?}; invalidFields is {field: message} on 400. Send the access token as 'Authorization: Bearer <accessToken>'. 401 = no or bad token, 403 = signed in but not allowed. Updates and deletes need the record's current 'version' (409 when stale). Every service allows browser calls from any origin. Endpoints that only other services call (inventory reservations, GET /skus on listing) are not listed. Every endpoint is under /api. GET /health (no /api, no token) answers {\"status\":\"ok\"} on every service.",
   "services": {
     "identity": {
       "baseUrl": "http://localhost:8086",
       "endpoints": [
         {
           "usecase": "RegisterBuyer",
-          "api": "POST /auth/register",
+          "api": "POST /api/auth/register",
           "query": {},
           "params": {},
           "body": {
@@ -34,7 +34,7 @@
         },
         {
           "usecase": "RegisterSeller",
-          "api": "POST /auth/register/seller",
+          "api": "POST /api/auth/register/seller",
           "query": {},
           "params": {},
           "body": {
@@ -62,7 +62,7 @@
         },
         {
           "usecase": "Login",
-          "api": "POST /auth/login",
+          "api": "POST /api/auth/login",
           "query": {},
           "params": {},
           "body": {
@@ -90,7 +90,7 @@
         },
         {
           "usecase": "GetCurrentUser",
-          "api": "GET /auth/me",
+          "api": "GET /api/auth/me",
           "query": {},
           "params": {},
           "body": {},
@@ -110,7 +110,7 @@
         },
         {
           "usecase": "Logout",
-          "api": "POST /auth/logout",
+          "api": "POST /api/auth/logout",
           "query": {},
           "params": {},
           "body": {},
@@ -125,7 +125,7 @@
         },
         {
           "usecase": "ForgotPassword",
-          "api": "POST /auth/forgot-password",
+          "api": "POST /api/auth/forgot-password",
           "query": {},
           "params": {},
           "body": {
@@ -142,7 +142,7 @@
         },
         {
           "usecase": "ResetPassword",
-          "api": "POST /auth/reset-password",
+          "api": "POST /api/auth/reset-password",
           "query": {},
           "params": {},
           "body": {
@@ -160,7 +160,7 @@
         },
         {
           "usecase": "CreateSeller",
-          "api": "POST /auth/admin/sellers",
+          "api": "POST /api/auth/admin/sellers",
           "query": {},
           "params": {},
           "body": {
@@ -188,7 +188,7 @@
       "endpoints": [
         {
           "usecase": "ListCatalogProducts",
-          "api": "GET /catalog/products",
+          "api": "GET /api/catalog/products",
           "query": {
             "page": "int (default 0)",
             "size": "int (default 20, max 100)",
@@ -238,7 +238,7 @@
         },
         {
           "usecase": "GetCatalogProduct",
-          "api": "GET /catalog/products/{id}",
+          "api": "GET /api/catalog/products/{id}",
           "query": {},
           "params": {
             "id": "string"
@@ -282,7 +282,7 @@
       "endpoints": [
         {
           "usecase": "UploadImages",
-          "api": "POST /assets/images",
+          "api": "POST /api/assets/images",
           "query": {},
           "params": {},
           "body": {
@@ -309,7 +309,7 @@
         },
         {
           "usecase": "DeleteImage",
-          "api": "DELETE /assets/images",
+          "api": "DELETE /api/assets/images",
           "query": {
             "key": "string (the key returned on upload)"
           },
@@ -331,7 +331,7 @@
       "endpoints": [
         {
           "usecase": "CreateProduct",
-          "api": "POST /products",
+          "api": "POST /api/products",
           "query": {},
           "params": {},
           "body": {
@@ -364,7 +364,7 @@
         },
         {
           "usecase": "ListProducts",
-          "api": "GET /products",
+          "api": "GET /api/products",
           "query": {
             "sellerId": "uuid (optional)",
             "title": "string, contains (optional)",
@@ -407,7 +407,7 @@
         },
         {
           "usecase": "GetProduct",
-          "api": "GET /products/{id}",
+          "api": "GET /api/products/{id}",
           "query": {},
           "params": {
             "id": "uuid"
@@ -437,7 +437,7 @@
         },
         {
           "usecase": "UpdateProduct",
-          "api": "PATCH /products/{id}",
+          "api": "PATCH /api/products/{id}",
           "query": {},
           "params": {
             "id": "uuid"
@@ -472,7 +472,7 @@
         },
         {
           "usecase": "ReplaceProduct",
-          "api": "PUT /products/{id}",
+          "api": "PUT /api/products/{id}",
           "query": {},
           "params": {
             "id": "uuid"
@@ -507,7 +507,7 @@
         },
         {
           "usecase": "DeleteProduct",
-          "api": "DELETE /products/{id}",
+          "api": "DELETE /api/products/{id}",
           "query": {
             "version": "long (required)"
           },
@@ -539,7 +539,7 @@
         },
         {
           "usecase": "ListSkus",
-          "api": "GET /products/{productId}/skus",
+          "api": "GET /api/products/{productId}/skus",
           "query": {},
           "params": {
             "productId": "uuid"
@@ -567,7 +567,7 @@
         },
         {
           "usecase": "GetSku",
-          "api": "GET /products/{productId}/skus/{skuId}",
+          "api": "GET /api/products/{productId}/skus/{skuId}",
           "query": {},
           "params": {
             "productId": "uuid",
@@ -594,7 +594,7 @@
         },
         {
           "usecase": "CreateSku",
-          "api": "POST /products/{productId}/skus",
+          "api": "POST /api/products/{productId}/skus",
           "query": {},
           "params": {
             "productId": "uuid"
@@ -625,7 +625,7 @@
         },
         {
           "usecase": "UpdateSku",
-          "api": "PUT /products/{productId}/skus/{skuId}",
+          "api": "PUT /api/products/{productId}/skus/{skuId}",
           "query": {},
           "params": {
             "productId": "uuid",
@@ -663,7 +663,7 @@
         },
         {
           "usecase": "DeleteSku",
-          "api": "DELETE /products/{productId}/skus/{skuId}",
+          "api": "DELETE /api/products/{productId}/skus/{skuId}",
           "query": {
             "version": "long (required)"
           },
@@ -697,7 +697,7 @@
       "endpoints": [
         {
           "usecase": "GetCart",
-          "api": "GET /carts/{customerId}",
+          "api": "GET /api/carts/{customerId}",
           "query": {},
           "params": {
             "customerId": "uuid (must be the signed-in user)"
@@ -724,7 +724,7 @@
         },
         {
           "usecase": "AddCartItem",
-          "api": "POST /carts/{customerId}/items",
+          "api": "POST /api/carts/{customerId}/items",
           "query": {},
           "params": {
             "customerId": "uuid"
@@ -755,7 +755,7 @@
         },
         {
           "usecase": "SetCartItem",
-          "api": "PUT /carts/{customerId}/items/{skuId}",
+          "api": "PUT /api/carts/{customerId}/items/{skuId}",
           "query": {},
           "params": {
             "customerId": "uuid",
@@ -786,7 +786,7 @@
         },
         {
           "usecase": "RemoveCartItem",
-          "api": "DELETE /carts/{customerId}/items/{skuId}",
+          "api": "DELETE /api/carts/{customerId}/items/{skuId}",
           "query": {
             "version": "long (optional)"
           },
@@ -816,7 +816,7 @@
         },
         {
           "usecase": "ClearCart",
-          "api": "DELETE /carts/{customerId}",
+          "api": "DELETE /api/carts/{customerId}",
           "query": {
             "version": "long (optional)"
           },
@@ -845,7 +845,7 @@
         },
         {
           "usecase": "DraftCheckout",
-          "api": "POST /checkouts",
+          "api": "POST /api/checkouts",
           "query": {},
           "params": {},
           "body": {
@@ -880,7 +880,7 @@
         },
         {
           "usecase": "GetCheckout",
-          "api": "GET /checkouts/{checkoutId}",
+          "api": "GET /api/checkouts/{checkoutId}",
           "query": {},
           "params": {
             "checkoutId": "uuid"
@@ -914,7 +914,7 @@
         },
         {
           "usecase": "CommitCheckout",
-          "api": "POST /checkouts/{checkoutId}/commit",
+          "api": "POST /api/checkouts/{checkoutId}/commit",
           "query": {},
           "params": {
             "checkoutId": "uuid"
@@ -948,7 +948,7 @@
         },
         {
           "usecase": "CancelCheckout",
-          "api": "POST /checkouts/{checkoutId}/cancel",
+          "api": "POST /api/checkouts/{checkoutId}/cancel",
           "query": {},
           "params": {
             "checkoutId": "uuid"
@@ -987,7 +987,7 @@
       "endpoints": [
         {
           "usecase": "GetOrder",
-          "api": "GET /orders/{orderId}",
+          "api": "GET /api/orders/{orderId}",
           "query": {},
           "params": {
             "orderId": "uuid"
@@ -1021,7 +1021,7 @@
         },
         {
           "usecase": "ListOrders",
-          "api": "GET /orders",
+          "api": "GET /api/orders",
           "query": {
             "customerId": "uuid (optional; only your own id unless you are an admin)",
             "status": "DRAFT|COMMITTED|CANCELLED (optional)",
@@ -1071,7 +1071,7 @@
       "endpoints": [
         {
           "usecase": "GetInventory",
-          "api": "GET /inventory/{skuId}",
+          "api": "GET /api/inventory/{skuId}",
           "query": {},
           "params": {
             "skuId": "long"
@@ -1093,7 +1093,7 @@
         },
         {
           "usecase": "ListInventory",
-          "api": "GET /inventory",
+          "api": "GET /api/inventory",
           "query": {
             "skuIds": "comma separated longs, max 100 (optional; then the response is {items} without paging)",
             "page": "int (default 0)",
@@ -1125,7 +1125,7 @@
         },
         {
           "usecase": "AddStock",
-          "api": "POST /inventory/{skuId}/stock/add",
+          "api": "POST /api/inventory/{skuId}/stock/add",
           "query": {},
           "params": {
             "skuId": "long"
@@ -1149,7 +1149,7 @@
         },
         {
           "usecase": "RemoveStock",
-          "api": "POST /inventory/{skuId}/stock/remove",
+          "api": "POST /api/inventory/{skuId}/stock/remove",
           "query": {},
           "params": {
             "skuId": "long"
@@ -1173,7 +1173,7 @@
         },
         {
           "usecase": "AdjustStock",
-          "api": "POST /inventory/{skuId}/stock",
+          "api": "POST /api/inventory/{skuId}/stock",
           "query": {},
           "params": {
             "skuId": "long"

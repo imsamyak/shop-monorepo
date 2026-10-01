@@ -42,9 +42,9 @@ class CartIntegrationTest {
    private static HttpServer startStub() {
       try {
          HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-         server.createContext("/skus", CartIntegrationTest::catalog);
-         server.createContext("/inventory/reservations", CartIntegrationTest::inventory);
-         server.createContext("/auth/token", exchange -> respond(exchange, 200,
+         server.createContext("/api/skus", CartIntegrationTest::catalog);
+         server.createContext("/api/inventory/reservations", CartIntegrationTest::inventory);
+         server.createContext("/api/auth/token", exchange -> respond(exchange, 200,
             "{\"accessToken\":\"stub-service-token\",\"tokenType\":\"Bearer\",\"expiresIn\":300}"));
          server.start();
          return server;
@@ -66,7 +66,7 @@ class CartIntegrationTest {
 
    private static void inventory(HttpExchange exchange) throws IOException {
       String request = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-      if (exchange.getRequestURI().getPath().equals("/inventory/reservations")) {
+      if (exchange.getRequestURI().getPath().equals("/api/inventory/reservations")) {
          StringBuilder reservations = new StringBuilder("{\"reservations\":[");
          JsonNode items = JSON.readTree(request).path("items");
          for (int i = 0; i < items.size(); i++) {
@@ -130,7 +130,7 @@ class CartIntegrationTest {
    }
 
    private Reply add(UUID customer, long sku, int quantity) throws Exception {
-      return call("POST", "/carts/" + customer + "/items", "{\"skuId\":" + sku + ",\"quantity\":" + quantity + "}");
+      return call("POST", "/api/carts/" + customer + "/items", "{\"skuId\":" + sku + ",\"quantity\":" + quantity + "}");
    }
 
    /** The cart as "sku:quantity" strings, ordered by SKU. */
@@ -146,7 +146,7 @@ class CartIntegrationTest {
    void aCustomerWithoutACartGetsAnEmptyOneNotA404() throws Exception {
       UUID customer = UUID.randomUUID();
 
-      Reply reply = call("GET", "/carts/" + customer, null);
+      Reply reply = call("GET", "/api/carts/" + customer, null);
 
       assertThat(reply.status()).isEqualTo(200);
       assertThat(reply.body().path("customerId").asText()).isEqualTo(customer.toString());
@@ -167,7 +167,7 @@ class CartIntegrationTest {
       assertThat(third.status()).isEqualTo(200);
       assertThat(lines(third)).containsExactly("3:1", "5:6");
       assertThat(third.body().path("updatedAt").asText()).isNotBlank();
-      Reply read = call("GET", "/carts/" + customer, null);
+      Reply read = call("GET", "/api/carts/" + customer, null);
       assertThat(lines(read)).containsExactly("3:1", "5:6");
       assertThat(read.body().path("version").asLong()).isEqualTo(third.body().path("version").asLong());
    }
@@ -178,7 +178,7 @@ class CartIntegrationTest {
 
       long first = add(customer, 5, 1).body().path("version").asLong();
       long second = add(customer, 5, 1).body().path("version").asLong();
-      long third = call("PUT", "/carts/" + customer + "/items/5", "{\"quantity\":9}").body().path("version").asLong();
+      long third = call("PUT", "/api/carts/" + customer + "/items/5", "{\"quantity\":9}").body().path("version").asLong();
 
       assertThat(second).isGreaterThan(first);
       assertThat(third).isGreaterThan(second);
@@ -189,8 +189,8 @@ class CartIntegrationTest {
       UUID customer = UUID.randomUUID();
       add(customer, 5, 2);
 
-      Reply set = call("PUT", "/carts/" + customer + "/items/5", "{\"quantity\":9}");
-      Reply created = call("PUT", "/carts/" + customer + "/items/8", "{\"quantity\":1}");
+      Reply set = call("PUT", "/api/carts/" + customer + "/items/5", "{\"quantity\":9}");
+      Reply created = call("PUT", "/api/carts/" + customer + "/items/8", "{\"quantity\":1}");
 
       assertThat(set.status()).isEqualTo(200);
       assertThat(lines(set)).containsExactly("5:9");
@@ -203,8 +203,8 @@ class CartIntegrationTest {
       add(customer, 5, 2);
       add(customer, 6, 1);
 
-      Reply removed = call("DELETE", "/carts/" + customer + "/items/5", null);
-      Reply again = call("DELETE", "/carts/" + customer + "/items/5", null);
+      Reply removed = call("DELETE", "/api/carts/" + customer + "/items/5", null);
+      Reply again = call("DELETE", "/api/carts/" + customer + "/items/5", null);
 
       assertThat(lines(removed)).containsExactly("6:1");
       assertThat(again.status()).isEqualTo(200);
@@ -218,12 +218,12 @@ class CartIntegrationTest {
       add(customer, 5, 2);
       add(customer, 6, 1);
 
-      Reply cleared = call("DELETE", "/carts/" + customer, null);
+      Reply cleared = call("DELETE", "/api/carts/" + customer, null);
 
       assertThat(cleared.status()).isEqualTo(200);
       assertThat(cleared.body().path("items")).isEmpty();
-      assertThat(call("GET", "/carts/" + customer, null).body().path("items")).isEmpty();
-      assertThat(call("DELETE", "/carts/" + UUID.randomUUID(), null).status()).as("clearing a cart nobody made").isEqualTo(200);
+      assertThat(call("GET", "/api/carts/" + customer, null).body().path("items")).isEmpty();
+      assertThat(call("DELETE", "/api/carts/" + UUID.randomUUID(), null).status()).as("clearing a cart nobody made").isEqualTo(200);
    }
 
    @Test
@@ -233,7 +233,7 @@ class CartIntegrationTest {
 
       add(one, 5, 1);
 
-      assertThat(call("GET", "/carts/" + two, null).body().path("items")).isEmpty();
+      assertThat(call("GET", "/api/carts/" + two, null).body().path("items")).isEmpty();
    }
 
    // ---- validation ---------------------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ class CartIntegrationTest {
    @Test
    void inputsAreValidated() throws Exception {
       UUID customer = UUID.randomUUID();
-      String items = "/carts/" + customer + "/items";
+      String items = "/api/carts/" + customer + "/items";
 
       assertThat(add(customer, 5, 0).status()).isEqualTo(400);
       assertThat(add(customer, 5, -1).status()).isEqualTo(400);
@@ -252,8 +252,8 @@ class CartIntegrationTest {
       assertThat(call("POST", items, "{\"skuId\":5}").status()).isEqualTo(400);
       assertThat(call("PUT", items + "/5", "{\"quantity\":0}").status()).isEqualTo(400);
       assertThat(call("PUT", items + "/5", "{}").status()).isEqualTo(400);
-      assertThat(call("GET", "/carts/not-a-uuid", null).status()).isEqualTo(400);
-      assertThat(call("GET", "/carts/" + customer, null).body().path("items")).as("nothing was stored").isEmpty();
+      assertThat(call("GET", "/api/carts/not-a-uuid", null).status()).isEqualTo(400);
+      assertThat(call("GET", "/api/carts/" + customer, null).body().path("items")).as("nothing was stored").isEmpty();
    }
 
    @Test
@@ -264,7 +264,7 @@ class CartIntegrationTest {
       Reply reply = add(customer, 5, 300);
 
       assertThat(reply.status()).isEqualTo(400);
-      assertThat(lines(call("GET", "/carts/" + customer, null))).containsExactly("5:800");
+      assertThat(lines(call("GET", "/api/carts/" + customer, null))).containsExactly("5:800");
    }
 
    @Test
@@ -275,7 +275,7 @@ class CartIntegrationTest {
       }
 
       assertThat(add(customer, 51, 1).status()).isEqualTo(400);
-      assertThat(call("PUT", "/carts/" + customer + "/items/51", "{\"quantity\":1}").status()).isEqualTo(400);
+      assertThat(call("PUT", "/api/carts/" + customer + "/items/51", "{\"quantity\":1}").status()).isEqualTo(400);
       assertThat(add(customer, 50, 1).status()).as("an existing line can still grow").isEqualTo(200);
    }
 
@@ -287,16 +287,16 @@ class CartIntegrationTest {
       long seen = add(customer, 5, 1).body().path("version").asLong();
       add(customer, 5, 1); // someone else edits
 
-      Reply post = call("POST", "/carts/" + customer + "/items", "{\"skuId\":5,\"quantity\":1,\"version\":" + seen + "}");
-      Reply put = call("PUT", "/carts/" + customer + "/items/5", "{\"quantity\":9,\"version\":" + seen + "}");
-      Reply delete = call("DELETE", "/carts/" + customer + "/items/5?version=" + seen, null);
-      Reply clear = call("DELETE", "/carts/" + customer + "?version=" + seen, null);
+      Reply post = call("POST", "/api/carts/" + customer + "/items", "{\"skuId\":5,\"quantity\":1,\"version\":" + seen + "}");
+      Reply put = call("PUT", "/api/carts/" + customer + "/items/5", "{\"quantity\":9,\"version\":" + seen + "}");
+      Reply delete = call("DELETE", "/api/carts/" + customer + "/items/5?version=" + seen, null);
+      Reply clear = call("DELETE", "/api/carts/" + customer + "?version=" + seen, null);
 
       for (Reply reply : List.of(post, put, delete, clear)) {
          assertThat(reply.status()).isEqualTo(409);
          assertThat(reply.body().path("errorCode").asText()).isEqualTo("VERSION_CONFLICT");
       }
-      assertThat(lines(call("GET", "/carts/" + customer, null))).containsExactly("5:2");
+      assertThat(lines(call("GET", "/api/carts/" + customer, null))).containsExactly("5:2");
    }
 
    @Test
@@ -304,7 +304,7 @@ class CartIntegrationTest {
       UUID customer = UUID.randomUUID();
       long seen = add(customer, 5, 1).body().path("version").asLong();
 
-      Reply reply = call("PUT", "/carts/" + customer + "/items/5", "{\"quantity\":4,\"version\":" + seen + "}");
+      Reply reply = call("PUT", "/api/carts/" + customer + "/items/5", "{\"quantity\":4,\"version\":" + seen + "}");
 
       assertThat(reply.status()).isEqualTo(200);
       assertThat(lines(reply)).containsExactly("5:4");
@@ -315,7 +315,7 @@ class CartIntegrationTest {
    @Test
    void aCartBelongsToItsCustomerAndOnlyAnAdminMayActForAnother() throws Exception {
       UUID customer = UUID.randomUUID();
-      String path = "/carts/" + customer;
+      String path = "/api/carts/" + customer;
       String body = "{\"skuId\":5,\"quantity\":2}";
       String other = TestTokens.buyer(UUID.randomUUID());
 
@@ -334,7 +334,7 @@ class CartIntegrationTest {
    // ---- checkout -----------------------------------------------------------------------------------------------
 
    private Reply draftFromCart(UUID customer, String itemsField) throws Exception {
-      return call("POST", "/checkouts", "{" + itemsField.replaceFirst("^,", "") + "}", TestTokens.buyer(customer));
+      return call("POST", "/api/checkouts", "{" + itemsField.replaceFirst("^,", "") + "}", TestTokens.buyer(customer));
    }
 
    @Test
@@ -352,7 +352,7 @@ class CartIntegrationTest {
          assertThat(draft.body().path("items").get(0).path("quantity").asInt()).isEqualTo(2);
          assertThat(draft.body().path("totalAmount").decimalValue()).isEqualByComparingTo("31.50");
       }
-      assertThat(lines(call("GET", "/carts/" + customer, null))).as("drafting leaves the cart alone").containsExactly("5:2", "6:1");
+      assertThat(lines(call("GET", "/api/carts/" + customer, null))).as("drafting leaves the cart alone").containsExactly("5:2", "6:1");
    }
 
    @Test
@@ -361,7 +361,7 @@ class CartIntegrationTest {
 
       assertThat(draftFromCart(customer, "").status()).isEqualTo(400);
       add(customer, 5, 1);
-      call("DELETE", "/carts/" + customer, null);
+      call("DELETE", "/api/carts/" + customer, null);
       assertThat(draftFromCart(customer, ",\"items\":[]").status()).as("an emptied cart").isEqualTo(400);
    }
 
@@ -385,12 +385,12 @@ class CartIntegrationTest {
       add(customer, 7, 3);
       Reply draft = draftFromCart(customer, ",\"items\":[{\"skuId\":5,\"quantity\":2},{\"skuId\":7,\"quantity\":1}]");
       String checkoutId = draft.body().path("checkoutId").asText();
-      long before = call("GET", "/carts/" + customer, null).body().path("version").asLong();
+      long before = call("GET", "/api/carts/" + customer, null).body().path("version").asLong();
 
-      Reply commit = call("POST", "/checkouts/" + checkoutId + "/commit", null);
+      Reply commit = call("POST", "/api/checkouts/" + checkoutId + "/commit", null);
 
       assertThat(commit.status()).isEqualTo(200);
-      Reply cart = call("GET", "/carts/" + customer, null);
+      Reply cart = call("GET", "/api/carts/" + customer, null);
       assertThat(lines(cart)).containsExactly("6:1");
       assertThat(cart.body().path("version").asLong()).isGreaterThan(before);
    }
@@ -402,10 +402,10 @@ class CartIntegrationTest {
       add(customer, 6, 1);
       String checkoutId = draftFromCart(customer, "").body().path("checkoutId").asText();
 
-      call("POST", "/checkouts/" + checkoutId + "/commit", null);
-      Reply replay = call("POST", "/checkouts/" + checkoutId + "/commit", null);
+      call("POST", "/api/checkouts/" + checkoutId + "/commit", null);
+      Reply replay = call("POST", "/api/checkouts/" + checkoutId + "/commit", null);
 
-      assertThat(call("GET", "/carts/" + customer, null).body().path("items")).isEmpty();
+      assertThat(call("GET", "/api/carts/" + customer, null).body().path("items")).isEmpty();
       assertThat(replay.status()).isEqualTo(200);
    }
 
@@ -414,10 +414,10 @@ class CartIntegrationTest {
       UUID customer = UUID.randomUUID();
       String checkoutId = draftFromCart(customer, ",\"items\":[{\"skuId\":5,\"quantity\":1}]").body().path("checkoutId").asText();
 
-      Reply commit = call("POST", "/checkouts/" + checkoutId + "/commit", null);
+      Reply commit = call("POST", "/api/checkouts/" + checkoutId + "/commit", null);
 
       assertThat(commit.status()).isEqualTo(200);
-      assertThat(call("GET", "/carts/" + customer, null).body().path("items")).isEmpty();
+      assertThat(call("GET", "/api/carts/" + customer, null).body().path("items")).isEmpty();
    }
 
    @Test
@@ -426,9 +426,9 @@ class CartIntegrationTest {
       add(customer, 5, 2);
       String checkoutId = draftFromCart(customer, "").body().path("checkoutId").asText();
 
-      Reply cancel = call("POST", "/checkouts/" + checkoutId + "/cancel", null);
+      Reply cancel = call("POST", "/api/checkouts/" + checkoutId + "/cancel", null);
 
       assertThat(cancel.status()).isEqualTo(200);
-      assertThat(lines(call("GET", "/carts/" + customer, null))).containsExactly("5:2");
+      assertThat(lines(call("GET", "/api/carts/" + customer, null))).containsExactly("5:2");
    }
 }

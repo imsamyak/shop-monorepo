@@ -22,7 +22,7 @@ services:
 ecom:
   security:
     jwt:
-      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/.well-known/jwks.json}
+      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/api/.well-known/jwks.json}
   outbox:
     # Publish the checkout events through the RabbitMQ client the profile calls "core"; infra says where it is.
     client: rabbit.core

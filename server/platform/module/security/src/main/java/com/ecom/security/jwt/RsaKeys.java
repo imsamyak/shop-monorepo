@@ -90,7 +90,7 @@ public final class RsaKeys {
       }
    }
 
-   /** The JWK representation published at /.well-known/jwks.json. */
+   /** The JWK representation published at /api/.well-known/jwks.json. */
    public static Map<String, Object> toJwk(PublicKey key) {
       RSAPublicKey rsa = (RSAPublicKey) key;
       Map<String, Object> jwk = new LinkedHashMap<>();

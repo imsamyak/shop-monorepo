@@ -1,8 +1,8 @@
-# Runs against the containers from bootstrap/local (bootstrap/local/local.ps1 up): S3Mock stands in for S3.
+# Runs against the containers from bootstrap/local (bootstrap/local/local.ps1 up) and the real S3 bucket (see ecom-infra-local.yml).
 ecom:
   security:
     jwt:
-      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/.well-known/jwks.json}
+      jwks-uri: ${IDENTITY_JWKS_URI:http://localhost:8086/api/.well-known/jwks.json}
   asset:
     # Keep the images in the S3 client the profile calls "assets"; infra says where it is.
     client: s3.assets

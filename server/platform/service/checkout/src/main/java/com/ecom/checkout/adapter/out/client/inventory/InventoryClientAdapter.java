@@ -48,7 +48,7 @@ public class InventoryClientAdapter implements ReserveStockPort, CommitStockPort
             "ttlSeconds", ttlSeconds,
             "items", lines.stream().map(l -> Map.of("skuId", l.skuId(), "quantity", l.quantity())).toList());
 
-      String body = post("/inventory/reservations", request, "reserve stock");
+      String body = post("/api/inventory/reservations", request, "reserve stock");
       List<ReservedStock> reserved = new ArrayList<>();
       for (JsonNode node : ClientSupport.parse(body).path("reservations")) {
          reserved.add(new ReservedStock(node.path("skuId").asLong(), UUID.fromString(node.path("reservationId").asText())));
@@ -58,12 +58,12 @@ public class InventoryClientAdapter implements ReserveStockPort, CommitStockPort
 
    @Override
    public void commit(Collection<UUID> reservationIds) {
-      post("/inventory/reservations/commit", Map.of("reservationIds", reservationIds), "commit stock");
+      post("/api/inventory/reservations/commit", Map.of("reservationIds", reservationIds), "commit stock");
    }
 
    @Override
    public void release(Collection<UUID> reservationIds) {
-      post("/inventory/reservations/release", Map.of("reservationIds", reservationIds), "release stock");
+      post("/api/inventory/reservations/release", Map.of("reservationIds", reservationIds), "release stock");
    }
 
    private String post(String path, Object request, String operation) {

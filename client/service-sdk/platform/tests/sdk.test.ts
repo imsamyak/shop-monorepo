@@ -38,7 +38,7 @@ describe('request building', () => {
     expect(result).toEqual(cart);
     expect(fake.requests).toEqual([
       {
-        url: `http://checkout/carts/${CUSTOMER}/items`,
+        url: `http://checkout/api/carts/${CUSTOMER}/items`,
         method: 'POST',
         headers: { accept: 'application/json', authorization: 'Bearer t', 'content-type': 'application/json' },
         body: { skuId: 7, quantity: 2 },
@@ -55,9 +55,9 @@ describe('request building', () => {
     await products.listProducts();
 
     expect(fake.requests.map((r) => [r.method, r.url, r.body])).toEqual([
-      ['GET', 'http://inventory/inventory?skuIds=1&skuIds=2', undefined],
-      ['DELETE', `http://checkout/carts/${CUSTOMER}/items/3?version=4`, undefined],
-      ['GET', 'http://localhost:8081/products', undefined],
+      ['GET', 'http://inventory/api/inventory?skuIds=1&skuIds=2', undefined],
+      ['DELETE', `http://checkout/api/carts/${CUSTOMER}/items/3?version=4`, undefined],
+      ['GET', 'http://localhost:8081/api/products', undefined],
     ]);
   });
 
@@ -75,7 +75,7 @@ describe('request building', () => {
   it('reaches the same use cases through execute', async () => {
     const fake = fakeFetch(200, {});
     await sdkWith(fake).execute('GetCart', { customerId: CUSTOMER }, { token: 't' });
-    expect(fake.requests[0]?.url).toBe(`http://checkout/carts/${CUSTOMER}`);
+    expect(fake.requests[0]?.url).toBe(`http://checkout/api/carts/${CUSTOMER}`);
   });
 });
 
@@ -136,7 +136,7 @@ describe('seller sign-up', () => {
 
     await sdkWith(fake).with(ctx).auth.registerSeller({ email: 'a@b.co', password: 'Passw0rd!x' });
 
-    expect(fake.requests[0]?.url).toBe('http://identity/auth/register/seller');
+    expect(fake.requests[0]?.url).toBe('http://identity/api/auth/register/seller');
     expect(ctx.token).toBe('seller-token');
   });
 });

@@ -49,7 +49,7 @@ public class ServiceTokenProvider {
    private void login() {
       String body = ClientSupport.call(DEPENDENCY,
             () -> restClient.post()
-                  .uri("/auth/token")
+                  .uri("/api/auth/token")
                   .contentType(MediaType.APPLICATION_JSON)
                   .body(Map.of("clientId", clientId, "clientSecret", clientSecret))
                   .retrieve()
