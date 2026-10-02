@@ -14,6 +14,16 @@ param(
 )
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+
+# The AWS keys and region and the RabbitMQ settings live in the repo-root .env (git-ignored). Only AWS_ and RABBITMQ_ values
+# are passed on to the service, and they win over anything already set on the machine, so a stray AWS_REGION cannot point
+# the service at the wrong region.
+$envFile = Join-Path $root '..\..\.env'
+if (Test-Path $envFile) {
+  foreach ($line in Get-Content $envFile) {
+    if ($line -match '^\s*((?:AWS|RABBITMQ)_[A-Z_]+)\s*=\s*"?([^"\r\n]*)"?\s*$') { Set-Item -Path "Env:$($Matches[1])" -Value $Matches[2].Trim() }
+  }
+}
 $mvn = (Get-Command mvn.cmd, mvn -ErrorAction SilentlyContinue | Select-Object -First 1).Source
 $install = New-Object System.Threading.Mutex($false, 'shop-platform-mvn-install')
 

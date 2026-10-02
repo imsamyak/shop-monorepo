@@ -53,8 +53,9 @@ public class RabbitClients implements DisposableBean {
                 + Arrays.toString(environment.getActiveProfiles())
                 + ". Add it to ecom-infra-<profile>.yml or to the service's configuration");
          }
+         boolean ssl = Boolean.TRUE.equals(broker.ssl());
          CachingConnectionFactory factory = new CachingConnectionFactory(broker.host().trim(),
-             broker.port() == null ? 5672 : broker.port());
+             broker.port() == null ? (ssl ? 5671 : 5672) : broker.port());
          if (!isBlank(broker.username())) {
             factory.setUsername(broker.username());
          }
@@ -63,6 +64,15 @@ public class RabbitClients implements DisposableBean {
          }
          if (!isBlank(broker.virtualHost())) {
             factory.setVirtualHost(broker.virtualHost().trim());
+         }
+         if (ssl) {
+            try {
+               // the JVM's own trust store and the host name are checked, so only a broker with a proper certificate is accepted
+               factory.getRabbitConnectionFactory().useSslProtocol(javax.net.ssl.SSLContext.getDefault());
+               factory.getRabbitConnectionFactory().enableHostnameVerification();
+            } catch (java.security.NoSuchAlgorithmException e) {
+               throw new IllegalStateException("TLS is not available for ecom.client.rabbit." + n, e);
+            }
          }
          factory.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
          return factory;

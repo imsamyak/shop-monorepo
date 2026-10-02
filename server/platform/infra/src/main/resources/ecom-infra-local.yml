@@ -11,11 +11,15 @@ ecom:
 
     rabbit:
       core:
-        host: localhost
-        port: 5672
-        # the broker's built-in local account; it only accepts connections from this machine
-        username: guest
-        password: guest
+        # The local container by default. To develop against a hosted broker (for example CloudAMQP) put RABBITMQ_HOST,
+        # RABBITMQ_PORT, RABBITMQ_USERNAME, RABBITMQ_PASSWORD, RABBITMQ_VHOST and RABBITMQ_SSL=true in the repo-root .env,
+        # which dev-service.ps1 passes on. guest/guest is the container's built-in account and only works from this machine.
+        host: ${RABBITMQ_HOST:localhost}
+        port: ${RABBITMQ_PORT:5672}
+        username: ${RABBITMQ_USERNAME:guest}
+        password: ${RABBITMQ_PASSWORD:guest}
+        virtual-host: ${RABBITMQ_VHOST:/}
+        ssl: ${RABBITMQ_SSL:false}
 
     dynamodb:
       main:
@@ -27,14 +31,15 @@ ecom:
 
     s3:
       assets:
-        bucket: ecom-assets
-        region: ap-south-1
-        # S3Mock stands in for S3; it needs the bucket in the path
-        endpoint: http://localhost:9090
-        path-style: true
-        # any key will do, S3Mock does not check it
-        access-key-id: local
-        secret-access-key: local
+        # Development uses the real bucket. The keys are not here: the AWS SDK reads AWS_ACCESS_KEY_ID and
+        # AWS_SECRET_ACCESS_KEY (the repo-root .env, which dev-service.ps1 loads). The region is written out because a
+        # bucket answers 301 to a client in another region. To work offline, start S3Mock (docker compose --profile
+        # s3mock) and set ecom.client.s3.assets.endpoint=http://localhost:9090, path-style=true and any access keys.
+        bucket: ${ASSETS_BUCKET:imsamyak.shop-asset-dev}
+        region: ${AWS_REGION:ap-south-1}
+        # A bucket name with a dot cannot be reached as <bucket>.s3.<region>.amazonaws.com over HTTPS (the certificate does not
+        # match), so the files are served by path: s3.<region>.amazonaws.com/<bucket>/<key>.
+        public-base-url: ${ASSETS_PUBLIC_BASE_URL:https://s3.ap-south-1.amazonaws.com/imsamyak.shop-asset-dev}
 
     mongodb:
       main:
