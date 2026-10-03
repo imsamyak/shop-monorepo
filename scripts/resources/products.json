@@ -1,0 +1,2032 @@
+[
+  {
+    "seller": "seller@cartly.test",
+    "title": "Essence Mascara Lash Princess",
+    "description": "The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.",
+    "price": 829,
+    "images": [
+      "images/01-essence-mascara-lash-princess-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "30 ml"
+        },
+        "price": 497,
+        "stock": 0
+      },
+      {
+        "properties": {
+          "size": "50 ml"
+        },
+        "price": 829,
+        "stock": 16
+      },
+      {
+        "properties": {
+          "size": "100 ml"
+        },
+        "price": 1161,
+        "stock": 27
+      },
+      {
+        "properties": {
+          "size": "200 ml"
+        },
+        "price": 1492,
+        "stock": 38
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Calvin Klein CK One",
+    "description": "CK One by Calvin Klein is a classic unisex fragrance, known for its fresh and clean scent. It's a versatile fragrance suitable for everyday wear.",
+    "price": 4149,
+    "images": [
+      "images/02-calvin-klein-ck-one-1.webp",
+      "images/02-calvin-klein-ck-one-2.webp",
+      "images/02-calvin-klein-ck-one-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "30 ml"
+        },
+        "price": 2489,
+        "stock": 12
+      },
+      {
+        "properties": {
+          "size": "50 ml"
+        },
+        "price": 4149,
+        "stock": 23
+      },
+      {
+        "properties": {
+          "size": "100 ml"
+        },
+        "price": 5809,
+        "stock": 34
+      },
+      {
+        "properties": {
+          "size": "200 ml"
+        },
+        "price": 7468,
+        "stock": 45
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Annibale Colombo Bed",
+    "description": "The Annibale Colombo Bed is a luxurious and elegant bed frame, crafted with high-quality materials for a comfortable and stylish bedroom.",
+    "price": 157699,
+    "images": [
+      "images/03-annibale-colombo-bed-1.webp",
+      "images/03-annibale-colombo-bed-2.webp",
+      "images/03-annibale-colombo-bed-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 157699,
+        "stock": 19
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 160853,
+        "stock": 30
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 164007,
+        "stock": 41
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 157699,
+        "stock": 52
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Apple",
+    "description": "Fresh and crisp apples, perfect for snacking or incorporating into various recipes.",
+    "price": 165,
+    "images": [
+      "images/04-apple-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "pack": "250 g"
+        },
+        "price": 83,
+        "stock": 26
+      },
+      {
+        "properties": {
+          "pack": "500 g"
+        },
+        "price": 165,
+        "stock": 37
+      },
+      {
+        "properties": {
+          "pack": "1 kg"
+        },
+        "price": 248,
+        "stock": 48
+      },
+      {
+        "properties": {
+          "pack": "2 kg"
+        },
+        "price": 330,
+        "stock": 59
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Decoration Swing",
+    "description": "The Decoration Swing is a charming addition to your home decor. Crafted with intricate details, it adds a touch of elegance and whimsy to any room.",
+    "price": 4979,
+    "images": [
+      "images/05-decoration-swing-1.webp",
+      "images/05-decoration-swing-2.webp",
+      "images/05-decoration-swing-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 4979,
+        "stock": 33
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 5079,
+        "stock": 44
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 5178,
+        "stock": 55
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 4979,
+        "stock": 10
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Bamboo Spatula",
+    "description": "The Bamboo Spatula is a versatile kitchen tool made from eco-friendly bamboo. Ideal for flipping, stirring, and serving various dishes.",
+    "price": 663,
+    "images": [
+      "images/06-bamboo-spatula-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 663,
+        "stock": 40
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 676,
+        "stock": 51
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 690,
+        "stock": 6
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 663,
+        "stock": 17
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Apple MacBook Pro 14 Inch Space Grey",
+    "description": "The MacBook Pro 14 Inch in Space Grey is a powerful and sleek laptop, featuring Apple's M1 Pro chip for exceptional performance and a stunning Retina display.",
+    "price": 165999,
+    "images": [
+      "images/07-apple-macbook-pro-14-inch-space-grey-1.webp",
+      "images/07-apple-macbook-pro-14-inch-space-grey-2.webp",
+      "images/07-apple-macbook-pro-14-inch-space-grey-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "S"
+        },
+        "price": 165999,
+        "stock": 47
+      },
+      {
+        "properties": {
+          "size": "M"
+        },
+        "price": 170979,
+        "stock": 58
+      },
+      {
+        "properties": {
+          "size": "L"
+        },
+        "price": 175959,
+        "stock": 13
+      },
+      {
+        "properties": {
+          "size": "XL"
+        },
+        "price": 180939,
+        "stock": 24
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Blue & Black Check Shirt",
+    "description": "The Blue & Black Check Shirt is a stylish and comfortable men's shirt featuring a classic check pattern. Made from high-quality fabric, it's suitable for both casual and semi-formal occasions.",
+    "price": 2489,
+    "images": [
+      "images/08-blue-black-check-shirt-1.webp",
+      "images/08-blue-black-check-shirt-2.webp",
+      "images/08-blue-black-check-shirt-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "S"
+        },
+        "price": 2489,
+        "stock": 54
+      },
+      {
+        "properties": {
+          "size": "M"
+        },
+        "price": 2564,
+        "stock": 9
+      },
+      {
+        "properties": {
+          "size": "L"
+        },
+        "price": 2638,
+        "stock": 20
+      },
+      {
+        "properties": {
+          "size": "XL"
+        },
+        "price": 2713,
+        "stock": 31
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Nike Air Jordan 1 Red And Black",
+    "description": "The Nike Air Jordan 1 in Red and Black is an iconic basketball sneaker known for its stylish design and high-performance features, making it a favorite among sneaker enthusiasts and athletes.",
+    "price": 12449,
+    "images": [
+      "images/09-nike-air-jordan-1-red-and-black-1.webp",
+      "images/09-nike-air-jordan-1-red-and-black-2.webp",
+      "images/09-nike-air-jordan-1-red-and-black-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "UK 6"
+        },
+        "price": 12449,
+        "stock": 5
+      },
+      {
+        "properties": {
+          "size": "UK 7"
+        },
+        "price": 12449,
+        "stock": 16
+      },
+      {
+        "properties": {
+          "size": "UK 8"
+        },
+        "price": 12449,
+        "stock": 27
+      },
+      {
+        "properties": {
+          "size": "UK 9"
+        },
+        "price": 12449,
+        "stock": 38
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Brown Leather Belt Watch",
+    "description": "The Brown Leather Belt Watch is a stylish timepiece with a classic design. Featuring a genuine leather strap and a sleek dial, it adds a touch of sophistication to your look.",
+    "price": 7469,
+    "images": [
+      "images/10-brown-leather-belt-watch-1.webp",
+      "images/10-brown-leather-belt-watch-2.webp",
+      "images/10-brown-leather-belt-watch-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 7469,
+        "stock": 12
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 7618,
+        "stock": 23
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 7768,
+        "stock": 34
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 7469,
+        "stock": 45
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Amazon Echo Plus",
+    "description": "The Amazon Echo Plus is a smart speaker with built-in Alexa voice control. It features premium sound quality and serves as a hub for controlling smart home devices.",
+    "price": 8299,
+    "images": [
+      "images/11-amazon-echo-plus-1.webp",
+      "images/11-amazon-echo-plus-2.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 8299,
+        "stock": 19
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 8465,
+        "stock": 30
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 8631,
+        "stock": 41
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 8299,
+        "stock": 52
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Generic Motorcycle",
+    "description": "The Generic Motorcycle is a versatile and reliable bike suitable for various riding preferences. With a balanced design, it provides a comfortable and efficient riding experience.",
+    "price": 331999,
+    "images": [
+      "images/12-generic-motorcycle-1.webp",
+      "images/12-generic-motorcycle-2.webp",
+      "images/12-generic-motorcycle-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 331999,
+        "stock": 26
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 338639,
+        "stock": 37
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 345279,
+        "stock": 48
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 331999,
+        "stock": 59
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Attitude Super Leaves Hand Soap",
+    "description": "Attitude Super Leaves Hand Soap is a natural and nourishing hand soap enriched with the goodness of super leaves. It cleanses and moisturizes your hands, leaving them feeling fresh and soft.",
+    "price": 746,
+    "images": [
+      "images/13-attitude-super-leaves-hand-soap-1.webp",
+      "images/13-attitude-super-leaves-hand-soap-2.webp",
+      "images/13-attitude-super-leaves-hand-soap-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "30 ml"
+        },
+        "price": 448,
+        "stock": 33
+      },
+      {
+        "properties": {
+          "size": "50 ml"
+        },
+        "price": 746,
+        "stock": 44
+      },
+      {
+        "properties": {
+          "size": "100 ml"
+        },
+        "price": 1044,
+        "stock": 55
+      },
+      {
+        "properties": {
+          "size": "200 ml"
+        },
+        "price": 1343,
+        "stock": 10
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "iPhone 5s",
+    "description": "The iPhone 5s is a classic smartphone known for its compact design and advanced features during its release. While it's an older model, it still provides a reliable user experience.",
+    "price": 16599,
+    "images": [
+      "images/14-iphone-5s-1.webp",
+      "images/14-iphone-5s-2.webp",
+      "images/14-iphone-5s-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "storage": "64 GB"
+        },
+        "price": 16599,
+        "stock": 40
+      },
+      {
+        "properties": {
+          "storage": "128 GB"
+        },
+        "price": 18259,
+        "stock": 51
+      },
+      {
+        "properties": {
+          "storage": "256 GB"
+        },
+        "price": 20251,
+        "stock": 6
+      },
+      {
+        "properties": {
+          "storage": "512 GB"
+        },
+        "price": 23239,
+        "stock": 17
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "American Football",
+    "description": "The American Football is a classic ball used in American football games. It is designed for throwing and catching, making it an essential piece of equipment for the sport.",
+    "price": 1659,
+    "images": [
+      "images/15-american-football-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 1659,
+        "stock": 47
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 1692,
+        "stock": 58
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 1725,
+        "stock": 13
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 1659,
+        "stock": 0
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Black Sun Glasses",
+    "description": "The Black Sun Glasses are a classic and stylish choice, featuring a sleek black frame and tinted lenses. They provide both UV protection and a fashionable look.",
+    "price": 2489,
+    "images": [
+      "images/16-black-sun-glasses-1.webp",
+      "images/16-black-sun-glasses-2.webp",
+      "images/16-black-sun-glasses-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 2489,
+        "stock": 54
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 2539,
+        "stock": 9
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 2589,
+        "stock": 0
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 2489,
+        "stock": 31
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "iPad Mini 2021 Starlight",
+    "description": "The iPad Mini 2021 in Starlight is a compact and powerful tablet from Apple. Featuring a stunning Retina display, powerful A-series chip, and a sleek design, it offers a premium tablet experience.",
+    "price": 41499,
+    "images": [
+      "images/17-ipad-mini-2021-starlight-1.webp",
+      "images/17-ipad-mini-2021-starlight-2.webp",
+      "images/17-ipad-mini-2021-starlight-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "storage": "64 GB"
+        },
+        "price": 41499,
+        "stock": 5
+      },
+      {
+        "properties": {
+          "storage": "128 GB"
+        },
+        "price": 45649,
+        "stock": 0
+      },
+      {
+        "properties": {
+          "storage": "256 GB"
+        },
+        "price": 50629,
+        "stock": 27
+      },
+      {
+        "properties": {
+          "storage": "512 GB"
+        },
+        "price": 58099,
+        "stock": 38
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Blue Frock",
+    "description": "The Blue Frock is a charming and stylish dress for various occasions. With a vibrant blue color and a comfortable design, it adds a touch of elegance to your wardrobe.",
+    "price": 2489,
+    "images": [
+      "images/18-blue-frock-1.webp",
+      "images/18-blue-frock-2.webp",
+      "images/18-blue-frock-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "S"
+        },
+        "price": 2489,
+        "stock": 0
+      },
+      {
+        "properties": {
+          "size": "M"
+        },
+        "price": 2564,
+        "stock": 23
+      },
+      {
+        "properties": {
+          "size": "L"
+        },
+        "price": 2638,
+        "stock": 34
+      },
+      {
+        "properties": {
+          "size": "XL"
+        },
+        "price": 2713,
+        "stock": 45
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "300 Touring",
+    "description": "The 300 Touring is a stylish and comfortable sedan, known for its luxurious features and smooth performance.",
+    "price": 2406999,
+    "images": [
+      "images/19-300-touring-1.webp",
+      "images/19-300-touring-2.webp",
+      "images/19-300-touring-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 2406999,
+        "stock": 19
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 2455139,
+        "stock": 30
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 2503279,
+        "stock": 41
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 2406999,
+        "stock": 52
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Blue Women's Handbag",
+    "description": "The Blue Women's Handbag is a stylish and spacious accessory for everyday use. With a vibrant blue color and multiple compartments, it combines fashion and functionality.",
+    "price": 4149,
+    "images": [
+      "images/20-blue-women-s-handbag-1.webp",
+      "images/20-blue-women-s-handbag-2.webp",
+      "images/20-blue-women-s-handbag-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 4149,
+        "stock": 26
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 4232,
+        "stock": 37
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 4315,
+        "stock": 48
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 4149,
+        "stock": 59
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Black Women's Gown",
+    "description": "The Black Women's Gown is an elegant and timeless evening gown. With a sleek black design, it's perfect for formal events and special occasions, exuding sophistication and style.",
+    "price": 10789,
+    "images": [
+      "images/21-black-women-s-gown-1.webp",
+      "images/21-black-women-s-gown-2.webp",
+      "images/21-black-women-s-gown-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "S"
+        },
+        "price": 10789,
+        "stock": 33
+      },
+      {
+        "properties": {
+          "size": "M"
+        },
+        "price": 11113,
+        "stock": 44
+      },
+      {
+        "properties": {
+          "size": "L"
+        },
+        "price": 11436,
+        "stock": 55
+      },
+      {
+        "properties": {
+          "size": "XL"
+        },
+        "price": 11760,
+        "stock": 10
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Green Crystal Earring",
+    "description": "The Green Crystal Earring is a dazzling accessory that features a vibrant green crystal. With a classic design, it adds a touch of elegance to your ensemble, perfect for formal or special occasions.",
+    "price": 2489,
+    "images": [
+      "images/22-green-crystal-earring-1.webp",
+      "images/22-green-crystal-earring-2.webp",
+      "images/22-green-crystal-earring-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 2489,
+        "stock": 40
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 2539,
+        "stock": 51
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 2589,
+        "stock": 6
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 2489,
+        "stock": 17
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Black & Brown Slipper",
+    "description": "The Black & Brown Slipper is a comfortable and stylish choice for casual wear. Featuring a blend of black and brown colors, it adds a touch of sophistication to your relaxation.",
+    "price": 1659,
+    "images": [
+      "images/23-black-brown-slipper-1.webp",
+      "images/23-black-brown-slipper-2.webp",
+      "images/23-black-brown-slipper-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "UK 6"
+        },
+        "price": 1659,
+        "stock": 47
+      },
+      {
+        "properties": {
+          "size": "UK 7"
+        },
+        "price": 1659,
+        "stock": 58
+      },
+      {
+        "properties": {
+          "size": "UK 8"
+        },
+        "price": 1659,
+        "stock": 13
+      },
+      {
+        "properties": {
+          "size": "UK 9"
+        },
+        "price": 1659,
+        "stock": 24
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "IWC Ingenieur Automatic Steel",
+    "description": "The IWC Ingenieur Automatic Steel watch is a durable and sophisticated timepiece. With a stainless steel case and automatic movement, it combines precision and style for watch enthusiasts.",
+    "price": 414999,
+    "images": [
+      "images/24-iwc-ingenieur-automatic-steel-1.webp",
+      "images/24-iwc-ingenieur-automatic-steel-2.webp",
+      "images/24-iwc-ingenieur-automatic-steel-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 414999,
+        "stock": 54
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 423299,
+        "stock": 9
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 431599,
+        "stock": 20
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 414999,
+        "stock": 31
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Eyeshadow Palette with Mirror",
+    "description": "The Eyeshadow Palette with Mirror offers a versatile range of eyeshadow shades for creating stunning eye looks. With a built-in mirror, it's convenient for on-the-go makeup application.",
+    "price": 1659,
+    "images": [
+      "images/25-eyeshadow-palette-with-mirror-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "30 ml"
+        },
+        "price": 995,
+        "stock": 5
+      },
+      {
+        "properties": {
+          "size": "50 ml"
+        },
+        "price": 1659,
+        "stock": 16
+      },
+      {
+        "properties": {
+          "size": "100 ml"
+        },
+        "price": 2323,
+        "stock": 27
+      },
+      {
+        "properties": {
+          "size": "200 ml"
+        },
+        "price": 2986,
+        "stock": 38
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Chanel Coco Noir Eau De",
+    "description": "Coco Noir by Chanel is an elegant and mysterious fragrance, featuring notes of grapefruit, rose, and sandalwood. Perfect for evening occasions.",
+    "price": 10789,
+    "images": [
+      "images/26-chanel-coco-noir-eau-de-1.webp",
+      "images/26-chanel-coco-noir-eau-de-2.webp",
+      "images/26-chanel-coco-noir-eau-de-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "30 ml"
+        },
+        "price": 6473,
+        "stock": 12
+      },
+      {
+        "properties": {
+          "size": "50 ml"
+        },
+        "price": 10789,
+        "stock": 23
+      },
+      {
+        "properties": {
+          "size": "100 ml"
+        },
+        "price": 15105,
+        "stock": 34
+      },
+      {
+        "properties": {
+          "size": "200 ml"
+        },
+        "price": 19420,
+        "stock": 45
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Annibale Colombo Sofa",
+    "description": "The Annibale Colombo Sofa is a sophisticated and comfortable seating option, featuring exquisite design and premium upholstery for your living room.",
+    "price": 207499,
+    "images": [
+      "images/27-annibale-colombo-sofa-1.webp",
+      "images/27-annibale-colombo-sofa-2.webp",
+      "images/27-annibale-colombo-sofa-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 207499,
+        "stock": 19
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 211649,
+        "stock": 30
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 215799,
+        "stock": 41
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 207499,
+        "stock": 52
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Beef Steak",
+    "description": "High-quality beef steak, great for grilling or cooking to your preferred level of doneness.",
+    "price": 1078,
+    "images": [
+      "images/28-beef-steak-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "pack": "250 g"
+        },
+        "price": 539,
+        "stock": 26
+      },
+      {
+        "properties": {
+          "pack": "500 g"
+        },
+        "price": 1078,
+        "stock": 37
+      },
+      {
+        "properties": {
+          "pack": "1 kg"
+        },
+        "price": 1617,
+        "stock": 48
+      },
+      {
+        "properties": {
+          "pack": "2 kg"
+        },
+        "price": 2156,
+        "stock": 59
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Family Tree Photo Frame",
+    "description": "The Family Tree Photo Frame is a sentimental and stylish way to display your cherished family memories. With multiple photo slots, it tells the story of your loved ones.",
+    "price": 2489,
+    "images": [
+      "images/29-family-tree-photo-frame-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 2489,
+        "stock": 33
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 2539,
+        "stock": 44
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 2589,
+        "stock": 55
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 2489,
+        "stock": 10
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Black Aluminium Cup",
+    "description": "The Black Aluminium Cup is a stylish and durable cup suitable for both hot and cold beverages. Its sleek black design adds a modern touch to your drinkware collection.",
+    "price": 497,
+    "images": [
+      "images/30-black-aluminium-cup-1.webp",
+      "images/30-black-aluminium-cup-2.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 497,
+        "stock": 40
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 507,
+        "stock": 51
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 517,
+        "stock": 6
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 497,
+        "stock": 17
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Asus Zenbook Pro Dual Screen Laptop",
+    "description": "The Asus Zenbook Pro Dual Screen Laptop is a high-performance device with dual screens, providing productivity and versatility for creative professionals.",
+    "price": 149399,
+    "images": [
+      "images/31-asus-zenbook-pro-dual-screen-laptop-1.webp",
+      "images/31-asus-zenbook-pro-dual-screen-laptop-2.webp",
+      "images/31-asus-zenbook-pro-dual-screen-laptop-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "S"
+        },
+        "price": 149399,
+        "stock": 47
+      },
+      {
+        "properties": {
+          "size": "M"
+        },
+        "price": 153881,
+        "stock": 58
+      },
+      {
+        "properties": {
+          "size": "L"
+        },
+        "price": 158363,
+        "stock": 13
+      },
+      {
+        "properties": {
+          "size": "XL"
+        },
+        "price": 162845,
+        "stock": 24
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Gigabyte Aorus Men Tshirt",
+    "description": "The Gigabyte Aorus Men Tshirt is a cool and casual shirt for gaming enthusiasts. With the Aorus logo and sleek design, it's perfect for expressing your gaming style.",
+    "price": 2074,
+    "images": [
+      "images/32-gigabyte-aorus-men-tshirt-1.webp",
+      "images/32-gigabyte-aorus-men-tshirt-2.webp",
+      "images/32-gigabyte-aorus-men-tshirt-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "S"
+        },
+        "price": 2074,
+        "stock": 54
+      },
+      {
+        "properties": {
+          "size": "M"
+        },
+        "price": 2136,
+        "stock": 9
+      },
+      {
+        "properties": {
+          "size": "L"
+        },
+        "price": 2198,
+        "stock": 20
+      },
+      {
+        "properties": {
+          "size": "XL"
+        },
+        "price": 2261,
+        "stock": 0
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Nike Baseball Cleats",
+    "description": "Nike Baseball Cleats are designed for maximum traction and performance on the baseball field. They provide stability and support for players during games and practices.",
+    "price": 6639,
+    "images": [
+      "images/33-nike-baseball-cleats-1.webp",
+      "images/33-nike-baseball-cleats-2.webp",
+      "images/33-nike-baseball-cleats-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "UK 6"
+        },
+        "price": 6639,
+        "stock": 5
+      },
+      {
+        "properties": {
+          "size": "UK 7"
+        },
+        "price": 6639,
+        "stock": 16
+      },
+      {
+        "properties": {
+          "size": "UK 8"
+        },
+        "price": 6639,
+        "stock": 0
+      },
+      {
+        "properties": {
+          "size": "UK 9"
+        },
+        "price": 6639,
+        "stock": 38
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Longines Master Collection",
+    "description": "The Longines Master Collection is an elegant and refined watch known for its precision and craftsmanship. With a timeless design, it's a symbol of luxury and sophistication.",
+    "price": 124499,
+    "images": [
+      "images/34-longines-master-collection-1.webp",
+      "images/34-longines-master-collection-2.webp",
+      "images/34-longines-master-collection-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 124499,
+        "stock": 12
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 126989,
+        "stock": 0
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 129479,
+        "stock": 34
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 124499,
+        "stock": 45
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Apple Airpods",
+    "description": "The Apple Airpods offer a seamless wireless audio experience. With easy pairing, high-quality sound, and Siri integration, they are perfect for on-the-go listening.",
+    "price": 10789,
+    "images": [
+      "images/35-apple-airpods-1.webp",
+      "images/35-apple-airpods-2.webp",
+      "images/35-apple-airpods-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 10789,
+        "stock": 0
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 11005,
+        "stock": 30
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 11221,
+        "stock": 41
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 10789,
+        "stock": 52
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Kawasaki Z800",
+    "description": "The Kawasaki Z800 is a powerful and agile sportbike known for its striking design and performance. It's equipped with advanced features, making it a favorite among motorcycle enthusiasts.",
+    "price": 746999,
+    "images": [
+      "images/36-kawasaki-z800-1.webp",
+      "images/36-kawasaki-z800-2.webp",
+      "images/36-kawasaki-z800-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 746999,
+        "stock": 26
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 761939,
+        "stock": 37
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 776879,
+        "stock": 48
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 746999,
+        "stock": 59
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Olay Ultra Moisture Shea Butter Body Wash",
+    "description": "Olay Ultra Moisture Shea Butter Body Wash is a luxurious body wash that hydrates and nourishes your skin with the moisturizing power of shea butter. Enjoy a rich lather and silky-smooth skin.",
+    "price": 1078,
+    "images": [
+      "images/37-olay-ultra-moisture-shea-butter-body-was-1.webp",
+      "images/37-olay-ultra-moisture-shea-butter-body-was-2.webp",
+      "images/37-olay-ultra-moisture-shea-butter-body-was-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "30 ml"
+        },
+        "price": 647,
+        "stock": 33
+      },
+      {
+        "properties": {
+          "size": "50 ml"
+        },
+        "price": 1078,
+        "stock": 44
+      },
+      {
+        "properties": {
+          "size": "100 ml"
+        },
+        "price": 1509,
+        "stock": 55
+      },
+      {
+        "properties": {
+          "size": "200 ml"
+        },
+        "price": 1940,
+        "stock": 10
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "iPhone 6",
+    "description": "The iPhone 6 is a stylish and capable smartphone with a larger display and improved performance. It introduced new features and design elements, making it a popular choice in its time.",
+    "price": 24899,
+    "images": [
+      "images/38-iphone-6-1.webp",
+      "images/38-iphone-6-2.webp",
+      "images/38-iphone-6-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "storage": "64 GB"
+        },
+        "price": 24899,
+        "stock": 40
+      },
+      {
+        "properties": {
+          "storage": "128 GB"
+        },
+        "price": 27389,
+        "stock": 51
+      },
+      {
+        "properties": {
+          "storage": "256 GB"
+        },
+        "price": 30377,
+        "stock": 6
+      },
+      {
+        "properties": {
+          "storage": "512 GB"
+        },
+        "price": 34859,
+        "stock": 17
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Baseball Ball",
+    "description": "The Baseball Ball is a standard baseball used in baseball games. It features a durable leather cover and is designed for pitching, hitting, and fielding in the game of baseball.",
+    "price": 746,
+    "images": [
+      "images/39-baseball-ball-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 746,
+        "stock": 47
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 761,
+        "stock": 58
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 776,
+        "stock": 13
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 746,
+        "stock": 24
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Classic Sun Glasses",
+    "description": "The Classic Sun Glasses offer a timeless design with a neutral frame and UV-protected lenses. These sunglasses are versatile and suitable for various occasions.",
+    "price": 2074,
+    "images": [
+      "images/40-classic-sun-glasses-1.webp",
+      "images/40-classic-sun-glasses-2.webp",
+      "images/40-classic-sun-glasses-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 2074,
+        "stock": 54
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 2115,
+        "stock": 9
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 2157,
+        "stock": 20
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 2074,
+        "stock": 31
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Samsung Galaxy Tab S8 Plus Grey",
+    "description": "The Samsung Galaxy Tab S8 Plus in Grey is a high-performance Android tablet by Samsung. With a large AMOLED display, powerful processor, and S Pen support, it's ideal for productivity and…",
+    "price": 49799,
+    "images": [
+      "images/41-samsung-galaxy-tab-s8-plus-grey-1.webp",
+      "images/41-samsung-galaxy-tab-s8-plus-grey-2.webp",
+      "images/41-samsung-galaxy-tab-s8-plus-grey-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "storage": "64 GB"
+        },
+        "price": 49799,
+        "stock": 5
+      },
+      {
+        "properties": {
+          "storage": "128 GB"
+        },
+        "price": 54779,
+        "stock": 16
+      },
+      {
+        "properties": {
+          "storage": "256 GB"
+        },
+        "price": 60755,
+        "stock": 27
+      },
+      {
+        "properties": {
+          "storage": "512 GB"
+        },
+        "price": 69719,
+        "stock": 38
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Girl Summer Dress",
+    "description": "The Girl Summer Dress is a cute and breezy dress designed for warm weather. With playful patterns and lightweight fabric, it's perfect for keeping cool and stylish during the summer.",
+    "price": 1659,
+    "images": [
+      "images/42-girl-summer-dress-1.webp",
+      "images/42-girl-summer-dress-2.webp",
+      "images/42-girl-summer-dress-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "S"
+        },
+        "price": 1659,
+        "stock": 12
+      },
+      {
+        "properties": {
+          "size": "M"
+        },
+        "price": 1709,
+        "stock": 23
+      },
+      {
+        "properties": {
+          "size": "L"
+        },
+        "price": 1759,
+        "stock": 34
+      },
+      {
+        "properties": {
+          "size": "XL"
+        },
+        "price": 1808,
+        "stock": 45
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Charger SXT RWD",
+    "description": "The Charger SXT RWD is a powerful and sporty rear-wheel-drive sedan, offering a blend of performance and practicality.",
+    "price": 2738999,
+    "images": [
+      "images/43-charger-sxt-rwd-1.webp",
+      "images/43-charger-sxt-rwd-2.webp",
+      "images/43-charger-sxt-rwd-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 2738999,
+        "stock": 19
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 2793779,
+        "stock": 30
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 2848559,
+        "stock": 41
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 2738999,
+        "stock": 52
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Heshe Women's Leather Bag",
+    "description": "The Heshe Women's Leather Bag is a luxurious and high-quality leather bag for the sophisticated woman. With a timeless design and durable craftsmanship, it's a versatile accessory.",
+    "price": 10789,
+    "images": [
+      "images/44-heshe-women-s-leather-bag-1.webp",
+      "images/44-heshe-women-s-leather-bag-2.webp",
+      "images/44-heshe-women-s-leather-bag-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 10789,
+        "stock": 26
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 11005,
+        "stock": 37
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 11221,
+        "stock": 48
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 10789,
+        "stock": 59
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Corset Leather With Skirt",
+    "description": "The Corset Leather With Skirt is a bold and edgy ensemble that combines a stylish corset with a matching skirt. Ideal for fashion-forward individuals, it makes a statement at any event.",
+    "price": 7469,
+    "images": [
+      "images/45-corset-leather-with-skirt-1.webp",
+      "images/45-corset-leather-with-skirt-2.webp",
+      "images/45-corset-leather-with-skirt-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "S"
+        },
+        "price": 7469,
+        "stock": 33
+      },
+      {
+        "properties": {
+          "size": "M"
+        },
+        "price": 7693,
+        "stock": 44
+      },
+      {
+        "properties": {
+          "size": "L"
+        },
+        "price": 7917,
+        "stock": 55
+      },
+      {
+        "properties": {
+          "size": "XL"
+        },
+        "price": 8141,
+        "stock": 10
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Green Oval Earring",
+    "description": "The Green Oval Earring is a stylish and versatile accessory with a unique oval shape. Whether for casual or dressy occasions, its green hue and contemporary design make it a standout piece.",
+    "price": 2074,
+    "images": [
+      "images/46-green-oval-earring-1.webp",
+      "images/46-green-oval-earring-2.webp",
+      "images/46-green-oval-earring-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 2074,
+        "stock": 40
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 2115,
+        "stock": 51
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 2157,
+        "stock": 6
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 2074,
+        "stock": 17
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Calvin Klein Heel Shoes",
+    "description": "Calvin Klein Heel Shoes are elegant and sophisticated, designed for formal occasions. With a classic design and high-quality materials, they complement your stylish ensemble.",
+    "price": 6639,
+    "images": [
+      "images/47-calvin-klein-heel-shoes-1.webp",
+      "images/47-calvin-klein-heel-shoes-2.webp",
+      "images/47-calvin-klein-heel-shoes-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "UK 6"
+        },
+        "price": 6639,
+        "stock": 47
+      },
+      {
+        "properties": {
+          "size": "UK 7"
+        },
+        "price": 6639,
+        "stock": 58
+      },
+      {
+        "properties": {
+          "size": "UK 8"
+        },
+        "price": 6639,
+        "stock": 13
+      },
+      {
+        "properties": {
+          "size": "UK 9"
+        },
+        "price": 6639,
+        "stock": 24
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Rolex Cellini Moonphase",
+    "description": "The Rolex Cellini Moonphase watch is a masterpiece of horology. Featuring a moon phase complication, it showcases the craftsmanship and elegance that Rolex is renowned for.",
+    "price": 1327999,
+    "images": [
+      "images/48-rolex-cellini-moonphase-1.webp",
+      "images/48-rolex-cellini-moonphase-2.webp",
+      "images/48-rolex-cellini-moonphase-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "color": "Black"
+        },
+        "price": 1327999,
+        "stock": 54
+      },
+      {
+        "properties": {
+          "color": "White"
+        },
+        "price": 1354559,
+        "stock": 9
+      },
+      {
+        "properties": {
+          "color": "Blue"
+        },
+        "price": 1381119,
+        "stock": 20
+      },
+      {
+        "properties": {
+          "color": "Red"
+        },
+        "price": 1327999,
+        "stock": 31
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Powder Canister",
+    "description": "The Powder Canister is a finely milled setting powder designed to set makeup and control shine. With a lightweight and translucent formula, it provides a smooth and matte finish.",
+    "price": 1244,
+    "images": [
+      "images/49-powder-canister-1.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "30 ml"
+        },
+        "price": 746,
+        "stock": 5
+      },
+      {
+        "properties": {
+          "size": "50 ml"
+        },
+        "price": 1244,
+        "stock": 16
+      },
+      {
+        "properties": {
+          "size": "100 ml"
+        },
+        "price": 1742,
+        "stock": 27
+      },
+      {
+        "properties": {
+          "size": "200 ml"
+        },
+        "price": 2239,
+        "stock": 0
+      }
+    ]
+  },
+  {
+    "seller": "seller@cartly.test",
+    "title": "Dior J'adore",
+    "description": "J'adore by Dior is a luxurious and floral fragrance, known for its blend of ylang-ylang, rose, and jasmine. It embodies femininity and sophistication.",
+    "price": 7469,
+    "images": [
+      "images/50-dior-j-adore-1.webp",
+      "images/50-dior-j-adore-2.webp",
+      "images/50-dior-j-adore-3.webp"
+    ],
+    "skus": [
+      {
+        "properties": {
+          "size": "30 ml"
+        },
+        "price": 4481,
+        "stock": 12
+      },
+      {
+        "properties": {
+          "size": "50 ml"
+        },
+        "price": 7469,
+        "stock": 23
+      },
+      {
+        "properties": {
+          "size": "100 ml"
+        },
+        "price": 10457,
+        "stock": 0
+      },
+      {
+        "properties": {
+          "size": "200 ml"
+        },
+        "price": 13444,
+        "stock": 45
+      }
+    ]
+  }
+]
