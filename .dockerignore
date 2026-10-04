@@ -1,0 +1,12 @@
+# keeps the build contexts of the Node images small and free of secrets
+.git
+.idea
+.claude
+.env
+.env.*
+!.env.example
+**/node_modules
+**/.next
+**/dist
+**/target
+server/platform

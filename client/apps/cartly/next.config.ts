@@ -5,6 +5,8 @@ import type { NextConfig } from 'next';
 const workspaceRoot = path.join(__dirname, '../../..');
 
 const nextConfig: NextConfig = {
+  // a self-contained server for the Docker image (client/apps/cartly/Dockerfile)
+  output: 'standalone',
   // The shared packages are TypeScript source, so Next compiles them with the app.
   transpilePackages: ['@cartly/chat'],
   turbopack: { root: workspaceRoot },

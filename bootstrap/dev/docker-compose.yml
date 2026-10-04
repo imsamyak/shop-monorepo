@@ -1,0 +1,202 @@
+# The whole shop on one machine: every server in its own container, with real Postgres and Mongo beside them.
+# Run it from the repository root (the images are built from there):
+#   docker compose -f bootstrap/dev/docker-compose.yml --env-file bootstrap/dev/.env up -d --build
+# Settings and secrets come from bootstrap/dev/.env (copy .env.example). Nothing is published on the network: the only way in is
+# the Cloudflare Tunnel, whose address is printed in its log:
+#   docker compose -f bootstrap/dev/docker-compose.yml logs cloudflared | grep trycloudflare
+
+name: shop
+
+x-java: &java
+  restart: unless-stopped
+  mem_limit: 640m
+  environment: &java-env
+    # the images default to the prod profile; this stack uses the dev (local) profile, with hosts overridden below
+    SPRING_PROFILES_ACTIVE: local
+    SPRING_DATASOURCE_USERNAME: ecom
+    SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-ecom}
+    IDENTITY_JWKS_URI: http://identity:8086/api/.well-known/jwks.json
+    RABBITMQ_HOST: ${RABBITMQ_HOST:?set RABBITMQ_HOST in bootstrap/dev/.env}
+    RABBITMQ_PORT: ${RABBITMQ_PORT:-5671}
+    RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+    RABBITMQ_SSL: ${RABBITMQ_SSL:-true}
+    AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    AWS_REGION: ${AWS_REGION:-ap-south-1}
+    # small heaps: seven JVMs share one machine
+    JAVA_TOOL_OPTIONS: -Xss512k -XX:+UseSerialGC -XX:TieredStopAtLevel=1
+
+x-platform-urls: &platform-urls
+  ECOM_IDENTITY_URL: http://identity:8086
+  ECOM_LISTING_URL: http://listing:8081
+  ECOM_INVENTORY_URL: http://inventory:8083
+  ECOM_CHECKOUT_URL: http://checkout:8084
+  ECOM_ORDER_URL: http://order:8085
+  ECOM_CATALOG_URL: http://catalog:8087
+  ECOM_ASSET_URL: http://asset:8088
+
+services:
+  postgres:
+    image: postgres:${POSTGRES_TAG:-16-alpine}
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      POSTGRES_USER: ecom
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecom}
+      POSTGRES_DB: identity_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # creates listing_db, inventory_db, checkout_db and order_db on the first start
+      - ../../server/platform/bootstrap/local/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecom -d identity_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  mongo:
+    image: mongo:${MONGO_TAG:-8.0}
+    restart: unless-stopped
+    mem_limit: 640m
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep -q 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 15s
+
+  # --- the platform. The services that consume events start first, so their queues exist before anything publishes.
+  inventory:
+    <<: *java
+    build: { context: ../../server/platform, dockerfile: service/inventory/Dockerfile }
+    environment:
+      <<: *java-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventory_db
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  order:
+    <<: *java
+    build: { context: ../../server/platform, dockerfile: service/order/Dockerfile }
+    environment:
+      <<: *java-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_db
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  catalog:
+    <<: *java
+    build: { context: ../../server/platform, dockerfile: service/catalog/Dockerfile }
+    environment:
+      <<: *java-env
+      ECOM_CLIENT_MONGODB_MAIN_URI: mongodb://mongo:27017
+    depends_on:
+      mongo: { condition: service_healthy }
+
+  listing:
+    <<: *java
+    build: { context: ../../server/platform, dockerfile: service/listing/Dockerfile }
+    environment:
+      <<: *java-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/listing_db
+    depends_on:
+      postgres: { condition: service_healthy }
+      inventory: { condition: service_healthy }
+      catalog: { condition: service_healthy }
+
+  identity:
+    <<: *java
+    build: { context: ../../server/platform, dockerfile: service/identity/Dockerfile }
+    environment:
+      <<: *java-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/identity_db
+      # the signing key is created here if missing; /tmp is writable for the unprivileged user
+      IDENTITY_DEV_KEY_FILE: /tmp/identity-jwt-private.pem
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  checkout:
+    <<: *java
+    build: { context: ../../server/platform, dockerfile: service/checkout/Dockerfile }
+    environment:
+      <<: *java-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/checkout_db
+      IDENTITY_SERVICE_URL: http://identity:8086
+      INVENTORY_SERVICE_URL: http://inventory:8083
+      LISTING_SERVICE_URL: http://listing:8081
+    depends_on:
+      postgres: { condition: service_healthy }
+      inventory: { condition: service_healthy }
+      listing: { condition: service_healthy }
+      identity: { condition: service_healthy }
+
+  asset:
+    <<: *java
+    build: { context: ../../server/platform, dockerfile: service/asset/Dockerfile }
+    depends_on:
+      identity: { condition: service_healthy }
+
+  # --- the assistant and the storefront (built from the repository root: they use the workspace's SDKs)
+  chatbot:
+    build: { context: ../.., dockerfile: server/chatbot/Dockerfile }
+    restart: unless-stopped
+    mem_limit: 1024m
+    environment:
+      <<: *platform-urls
+      GEMINI_API_KEY: ${CHATBOT_API_KEY_GEMINI}
+    depends_on:
+      catalog: { condition: service_healthy }
+      listing: { condition: service_healthy }
+      checkout: { condition: service_healthy }
+      order: { condition: service_healthy }
+
+  cartly:
+    build: { context: ../.., dockerfile: client/apps/cartly/Dockerfile }
+    restart: unless-stopped
+    mem_limit: 512m
+    ports:
+      # for checking from the machine itself; the public way in is the tunnel
+      - "127.0.0.1:3000:3000"
+    environment:
+      <<: *platform-urls
+      CHATBOT_URL: http://chatbot:4001
+    depends_on:
+      catalog: { condition: service_healthy }
+      identity: { condition: service_healthy }
+      checkout: { condition: service_healthy }
+      order: { condition: service_healthy }
+      chatbot: { condition: service_healthy }
+
+  # A free public HTTPS address for Cartly, with no inbound ports opened on the machine. The address changes when this
+  # container is recreated; read the current one from its log.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    mem_limit: 128m
+    command: tunnel --no-autoupdate --url http://cartly:3000
+    depends_on:
+      cartly: { condition: service_healthy }
+
+  # Runs once: creates the sellers and products (see scripts/). The databases are new, so nothing is reset.
+  ingest:
+    build: { context: ../.., dockerfile: scripts/Dockerfile }
+    restart: "no"
+    mem_limit: 384m
+    environment:
+      <<: *platform-urls
+    depends_on:
+      catalog: { condition: service_healthy }
+      listing: { condition: service_healthy }
+      inventory: { condition: service_healthy }
+      asset: { condition: service_healthy }
+      identity: { condition: service_healthy }
+
+volumes:
+  postgres-data:
+  mongo-data:
