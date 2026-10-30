@@ -1,9 +1,10 @@
 # The whole shop on one machine: every server in its own container, with real Postgres and Mongo beside them.
 # Run it from the repository root (the images are built from there):
 #   docker compose -f bootstrap/dev/docker-compose.yml --env-file bootstrap/dev/.env up -d --build
-# Settings and secrets come from bootstrap/dev/.env (copy .env.example). Nothing is published on the network: the only way in is
-# the Cloudflare Tunnel, whose address is printed in its log:
+# Settings and secrets come from bootstrap/dev/.env (copy .env.example). The only published port is 80 (Cartly). For https
+# without a domain, add the tunnel: COMPOSE_PROFILES=tunnel COOKIE_SECURE=true, and read its address from its log:
 #   docker compose -f bootstrap/dev/docker-compose.yml logs cloudflared | grep trycloudflare
+# bootstrap/dev/deploy (pnpm deploy:dev) runs all of this on a server over ssh.
 
 name: shop
 
@@ -161,11 +162,13 @@ services:
     restart: unless-stopped
     mem_limit: 512m
     ports:
-      # for checking from the machine itself; the public way in is the tunnel
-      - "127.0.0.1:3000:3000"
+      # the only published port: http://<the machine's address>. With the tunnel profile, https is added through it.
+      - "80:3000"
     environment:
       <<: *platform-urls
       CHATBOT_URL: http://chatbot:4001
+      # the login cookie is only sent back over http when it is not marked Secure; set COOKIE_SECURE=true behind https
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
       catalog: { condition: service_healthy }
       identity: { condition: service_healthy }
@@ -173,9 +176,10 @@ services:
       order: { condition: service_healthy }
       chatbot: { condition: service_healthy }
 
-  # A free public HTTPS address for Cartly, with no inbound ports opened on the machine. The address changes when this
-  # container is recreated; read the current one from its log.
+  # Optional (COMPOSE_PROFILES=tunnel): a free public HTTPS address for Cartly, with no domain. The address changes when
+  # this container is recreated; read the current one from its log.
   cloudflared:
+    profiles: ["tunnel"]
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
     mem_limit: 128m
@@ -183,8 +187,10 @@ services:
     depends_on:
       cartly: { condition: service_healthy }
 
-  # Runs once: creates the sellers and products (see scripts/). The databases are new, so nothing is reset.
+  # Runs once, on demand (`docker compose run --rm ingest`): creates the sellers and products (see scripts/).
+  # Running it twice fails on the duplicate sellers, so it is not part of `up`.
   ingest:
+    profiles: ["ingest"]
     build: { context: ../.., dockerfile: scripts/Dockerfile }
     restart: "no"
     mem_limit: 384m

@@ -9,3 +9,6 @@ dist/
 .env
 .env.*
 !.env.example
+# the development server: its address, and the ssh key
+bootstrap/dev/deploy.config.json
+*.pem

@@ -15,7 +15,8 @@ export const sdk = createEcomSdk({
           httpOnly: true,
           sameSite: 'lax',
           path: '/',
-          secure: process.env.NODE_ENV === 'production',
+          // browsers drop a Secure cookie that arrives over plain http; COOKIE_SECURE=false is for a deployment without https
+          secure: (process.env.COOKIE_SECURE ?? String(process.env.NODE_ENV === 'production')) === 'true',
         });
       } else {
         jar.delete(TOKEN_COOKIE);

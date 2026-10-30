@@ -1,0 +1,6 @@
+{
+  "host": "ec2-xx-xx-xx-xx.region.compute.amazonaws.com",
+  "user": "ec2-user",
+  "keyPath": "your-key.pem",
+  "tunnel": false
+}
