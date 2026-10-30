@@ -30,6 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </Link>
               <HeaderSearch />
               <nav>
+                <Link href="/arch">Architecture</Link>
                 {user && <Link href="/orders">Orders</Link>}
                 <CartLink signedIn={Boolean(user)} />
                 {user ? (

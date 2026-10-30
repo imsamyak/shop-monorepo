@@ -461,4 +461,66 @@
     .step-text { justify-items: start; padding-top: 3px; }
     .timeline li:not(:last-child)::after { top: 30px; bottom: -22px; left: 13px; right: auto; width: 2px; height: auto; }
   }
+
+  /* ---------- architecture page ---------- */
+  .arch { display: grid; gap: 40px; max-width: 1040px; margin: 0 auto; }
+  .arch-hero { padding: 36px 32px; border-radius: var(--radius); background: var(--hero); color: #fff; }
+  .arch-hero h1 { font-size: 2.2rem; margin-bottom: 12px; }
+  .arch-hero .eyebrow { color: rgba(255, 255, 255, 0.8); }
+  .arch-hero .lead { max-width: 62ch; color: rgba(255, 255, 255, 0.92); margin: 0 0 22px; font-size: 1.05rem; }
+  .arch-hero a.button { margin-top: 4px; background: #fff; color: var(--accent); border-color: #fff; }
+  .arch-hero a.button:hover { background: var(--accent-soft); color: var(--accent-hover); text-decoration: none; }
+  .arch-facts { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+  .arch-facts li { display: grid; min-width: 120px; padding: 12px 18px; border-radius: 12px; background: rgba(255, 255, 255, 0.16); }
+  .arch-facts strong { font-size: 1.7rem; line-height: 1.1; }
+  .arch-facts span { font-size: 0.85rem; opacity: 0.9; }
+
+  .arch-section { display: grid; gap: 14px; }
+  .arch-section > p { margin: 0; max-width: 78ch; }
+  .arch-notes { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 86ch; list-style: disc; }
+
+  .diagram { overflow-x: auto; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .diagram svg { display: block; width: 100%; height: auto; font-family: inherit; }
+  .d-box rect { stroke-width: 1.5; }
+  .d-plain rect { fill: var(--surface); stroke: var(--border-strong); }
+  .d-soft rect { fill: var(--accent-soft); stroke: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .d-accent rect { fill: var(--accent); stroke: var(--accent-hover); }
+  .d-store rect { fill: var(--field); stroke: var(--border-strong); }
+  .d-title { font-size: 13.5px; font-weight: 700; fill: var(--text); }
+  .d-sub { font-size: 11.5px; fill: var(--muted); }
+  .d-accent .d-title, .d-accent .d-sub { fill: #fff; }
+  .d-group { fill: color-mix(in srgb, var(--accent-soft) 45%, var(--surface)); stroke: var(--border-strong); stroke-dasharray: 5 4; }
+  .d-group-title { font-size: 13px; font-weight: 700; fill: var(--accent); }
+  .d-line { stroke: var(--muted); stroke-width: 1.6; }
+  .d-dashed { stroke-dasharray: 5 4; }
+  .d-head { fill: var(--muted); }
+  .d-label { font-size: 11px; fill: var(--muted); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+
+  .arch-flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: step; }
+  .arch-flow li { position: relative; padding: 16px 18px 16px 62px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); counter-increment: step; }
+  .arch-flow li::before {
+    content: counter(step); position: absolute; left: 18px; top: 16px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-weight: 700;
+  }
+  .arch-flow p { margin: 4px 0 0; color: var(--muted); }
+
+  .arch-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+  .arch-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; min-width: 720px; }
+  .arch-table th, .arch-table td { padding: 12px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+  .arch-table thead th { background: var(--field); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  .arch-table tbody th { width: 21%; color: var(--accent); }
+  .arch-table td:nth-child(2) { width: 33%; }
+  .arch-table tr:last-child th, .arch-table tr:last-child td { border-bottom: 0; }
+
+  .arch-list { margin: 0; display: grid; gap: 10px; }
+  .arch-list > div { display: grid; grid-template-columns: 170px 1fr; gap: 16px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .arch-list dt { font-weight: 700; color: var(--accent); }
+  .arch-list dd { margin: 0; }
+  @media (max-width: 640px) {
+    .arch-hero { padding: 26px 20px; }
+    .arch-hero h1 { font-size: 1.7rem; }
+    .arch-facts { display: grid; grid-template-columns: 1fr 1fr; }
+    .arch-facts li { min-width: 0; }
+    .arch-list > div { grid-template-columns: 1fr; gap: 4px; }
+  }
 }

@@ -58,16 +58,22 @@ function Reply({ text }: { text: string }) {
   return <>{blocks}</>;
 }
 
+/** crypto.randomUUID exists only on https pages and localhost; getRandomValues also works on plain http. */
+function newId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 /** One conversation per browser tab: the id survives a reload so the assistant still remembers the thread. */
 function sessionId(): string {
   try {
     const saved = sessionStorage.getItem(SESSION_KEY);
     if (saved) return saved;
-    const created = crypto.randomUUID();
+    const created = newId();
     sessionStorage.setItem(SESSION_KEY, created);
     return created;
   } catch {
-    return crypto.randomUUID();
+    return newId();
   }
 }
 
